@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Building2, LogIn, UserPlus, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/login")({
+export const Route = createFileRoute("/painel")({
   head: () => ({
     meta: [
       { title: "Entrar — Vistoria Obra" },

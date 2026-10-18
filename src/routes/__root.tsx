@@ -148,16 +148,23 @@ function RootComponent() {
     };
   }, []);
 
-  // Auth guard: redireciona para /login se não logado (exceto rotas públicas como /f/:token e /login)
+  // Auth guard: mostra 404 se não logado (exceto rotas públicas como /f/:token e /painel)
   useEffect(() => {
     const checkAuth = async () => {
       const path = window.location.pathname;
-      const isPublic = path.startsWith("/f/") || path === "/login";
+      const isPublic = path.startsWith("/f/") || path === "/painel";
       if (isPublic) { setAuthReady(true); return; }
 
       const { data } = await supabase.auth.getSession();
       if (!data.session) {
-        nav({ to: "/login" });
+        // Se está na raiz ou qualquer rota protegida, mostra 404 genérico (não revela o app)
+        if (path === "/" || !path.startsWith("/f/")) {
+          setAuthReady(false);
+          // Mostra página "não encontrada" sem revelar o login
+          document.title = "Página não encontrada";
+          return;
+        }
+        nav({ to: "/painel" });
         return;
       }
       setAuthReady(true);
@@ -165,7 +172,7 @@ function RootComponent() {
     checkAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_OUT") nav({ to: "/login" });
+      if (event === "SIGNED_OUT") nav({ to: "/painel" });
     });
     return () => subscription.unsubscribe();
   }, []);
@@ -173,8 +180,14 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       {authReady ? <Outlet /> : (
-        <div className="flex min-h-screen items-center justify-center">
-          <p className="text-muted-foreground">Carregando…</p>
+        <div className="flex min-h-screen items-center justify-center bg-background px-4">
+          <div className="max-w-md text-center">
+            <h1 className="text-7xl font-bold text-foreground">404</h1>
+            <h2 className="mt-4 text-xl font-semibold text-foreground">Página não encontrada</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              A página que você procura não existe ou foi removida.
+            </p>
+          </div>
         </div>
       )}
       <Toaster position="top-center" richColors />
