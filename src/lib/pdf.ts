@@ -16,8 +16,9 @@ export function buildPdf(v: Inspection): jsPDF {
   // Header
   doc.setFillColor(...NAVY); doc.rect(0, 0, W, 34, "F");
   doc.setTextColor(255); doc.setFont("helvetica", "bold"); doc.setFontSize(18);
+  const tipoLabel = v.tipoImovel === "casa" ? "DE CASA" : "DE APARTAMENTO";
   doc.text("CHECKLIST DE VISTORIA", M, 14);
-  doc.setTextColor(...AMBER); doc.text("DE APARTAMENTO", M + 86, 14);
+  doc.setTextColor(...AMBER); doc.text(tipoLabel, M + 86, 14);
   doc.setTextColor(255); doc.setFontSize(9); doc.setFont("helvetica", "normal");
   doc.text(`Empreendimento: ${v.empreendimento}`, M, 23);
   doc.text(`Unidade: ${v.unidade}`, 130, 23);

@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useDismiss } from "@/hooks/use-dismiss";
 import { ConfirmDelete } from "@/components/ConfirmDelete";
-import { Plus, Building2, Trash2, ChevronRight, LogOut } from "lucide-react";
+import { Plus, Building2, Trash2, ChevronRight, LogOut, Home, Building } from "lucide-react";
 import { listInspections, saveInspection, deleteInspection, uid, type Inspection } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
 import { totalOf } from "@/lib/checklist";
@@ -29,9 +29,9 @@ function Home() {
 
   const create = async (tipoImovel: "apartamento" | "casa") => {
     const v: Inspection = {
-      id: uid(), tipoImovel, empreendimento: "", unidade: "", data: new Date().toISOString().slice(0, 10),
+      id: uid(), empreendimento: "", unidade: "", data: new Date().toISOString().slice(0, 10),
       responsavel: localStorage.getItem("vo:resp") || "", crea: localStorage.getItem("vo:crea") || "",
-      entries: {}, obsGerais: "", apontamentos: [], status: "andamento", createdAt: Date.now(), updatedAt: Date.now(),
+      entries: {}, obsGerais: "", apontamentos: [], tipoImovel, status: "andamento", createdAt: Date.now(), updatedAt: Date.now(),
     };
     await saveInspection(v);
     nav({ to: "/vistoria/$id", params: { id: v.id } });
@@ -67,7 +67,7 @@ function Home() {
             Vistoria <span className="text-secondary">Obra</span>
           </h1>
         </div>
-        <p className="mt-2 text-primary-foreground/80">Checklist de apartamento • fotos • PDF</p>
+        <p className="mt-2 text-primary-foreground/80">Checklist de vistoria • fotos • PDF</p>
         <button onClick={() => supabase.auth.signOut()} className="absolute right-4 top-4 flex items-center gap-1 rounded-lg bg-primary-foreground/10 px-3 py-1.5 text-xs font-semibold text-primary-foreground/80 hover:bg-primary-foreground/20" aria-label="Sair"><LogOut className="h-3.5 w-3.5" />Sair</button>
         <Link to="/formularios" className="mt-4 block rounded-xl bg-secondary px-4 py-3 text-center text-lg font-bold text-secondary-foreground shadow">📋 Formulários de clientes</Link>
       </header>
@@ -89,7 +89,7 @@ function Home() {
                 <div className="flex-1">
                   <div className="font-display text-xl font-bold">{v.empreendimento || "Sem nome"} {v.unidade && `• ${v.unidade}`}</div>
                   <div className="text-sm text-muted-foreground">
-                    {v.data.split("-").reverse().join("/")} • {v.status === "concluida" ? "Concluída" : `${pct}% feito`}
+                    {v.tipoImovel === "casa" ? "Casa" : "Apto"} • {v.data.split("-").reverse().join("/")} • {v.status === "concluida" ? "Concluída" : `${pct}% feito`}
                   </div>
                   <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
                     <div className={v.status === "concluida" ? "h-full bg-success" : "h-full bg-secondary"} style={{ width: `${pct}%` }} />
@@ -109,10 +109,10 @@ function Home() {
       <div className="fixed inset-x-0 bottom-0 mx-auto max-w-xl p-4">
         <div className="flex gap-2">
           <button disabled={erro} onClick={() => create("apartamento")} className="flex h-16 flex-1 items-center justify-center gap-2 rounded-lg border border-primary bg-primary font-display text-lg font-bold uppercase text-primary-foreground shadow-lg disabled:opacity-50 active:scale-[.98]">
-            <Plus className="h-6 w-6" /> Apartamento
+            <Building className="h-6 w-6" /> Apartamento
           </button>
           <button disabled={erro} onClick={() => create("casa")} className="flex h-16 flex-1 items-center justify-center gap-2 rounded-lg border border-primary bg-primary font-display text-lg font-bold uppercase text-primary-foreground shadow-lg disabled:opacity-50 active:scale-[.98]">
-            <Plus className="h-6 w-6" /> Casa
+            <Home className="h-6 w-6" /> Casa
           </button>
         </div>
       </div>
