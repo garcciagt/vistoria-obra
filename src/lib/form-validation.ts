@@ -2,7 +2,7 @@ import { z } from "zod";
 import { FORMS, key } from "./forms";
 
 export const submissionSchema = z.object({
-  token: z.string().uuid(),
+  token: z.string().min(1),
   respostas: z.record(z.string().max(200), z.string().max(1000)),
 }).refine((value) => JSON.stringify(value.respostas).length <= 50000, "Dados muito grandes");
 

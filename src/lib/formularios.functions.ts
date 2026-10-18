@@ -89,7 +89,7 @@ export const criarFormulario = createServerFn({ method: "POST" })
   .inputValidator((d: { cliente_nome: string; tipo: string }) => {
     const nome = d.cliente_nome.trim().slice(0, 120);
     if (!nome) throw new Error("Nome obrigatório");
-    if (d.tipo !== "vistoria" && d.tipo !== "projeto") throw new Error("Tipo inválido");
+    if (d.tipo !== "vistoria" && d.tipo !== "projeto" && d.tipo !== "contrato") throw new Error("Tipo inválido");
     return { cliente_nome: nome, tipo: d.tipo };
   })
   .handler(async ({ data, context }) => {

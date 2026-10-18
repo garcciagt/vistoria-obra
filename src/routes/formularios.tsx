@@ -159,6 +159,7 @@ function Painel() {
               <select aria-label="Tipo de formulário" className="form-control" value={tipo} onChange={(e) => setTipo(e.target.value)}>
                 <option value="vistoria">Vistoria</option>
                 <option value="projeto">Projeto</option>
+                <option value="contrato">Contrato</option>
               </select>
               <Button onClick={async () => { if (!nome.trim()) { window.alert("Digite o nome do cliente para gerar o link."); return; } try { const result = await criarFormulario({ data: { cliente_nome: nome.trim(), tipo } }); if (!result.ok) throw new Error("Não foi possível criar o formulário."); setNome(""); await load(); } catch (e) { window.alert("Não foi possível gerar o link: " + (e as Error).message); } }}>Gerar link</Button>
             </div>
@@ -197,7 +198,7 @@ function Painel() {
                   </form>
                 ) : <b className="forms-client-name" title={r.cliente_nome}>{r.cliente_nome}</b>}
                 <div className="forms-client-meta">
-                  <span>{r.tipo === "vistoria" ? "Vistoria" : "Projeto"}</span><span aria-hidden="true">·</span><time dateTime={r.created_at}>{new Date(r.created_at).toLocaleDateString("pt-BR")}</time>
+                  <span>{r.tipo === "vistoria" ? "Vistoria" : r.tipo === "projeto" ? "Projeto" : "Contrato"}</span><span aria-hidden="true">·</span><time dateTime={r.created_at}>{new Date(r.created_at).toLocaleDateString("pt-BR")}</time>
                   <span className={`rounded px-2 py-0.5 text-xs ${r.status === "preenchido" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>{r.status === "preenchido" ? "Preenchido" : "Pendente"}</span>
                 </div>
               </div>
