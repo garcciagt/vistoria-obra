@@ -15,12 +15,11 @@ const pessoa = (req: boolean, extra: Field[] = []): Field[] => [
 const endereco: Field[] = ["Rua/Avenida", "Número", "Complemento", "Bairro", "Cidade", "CEP"].map((l) => ({ label: l }));
 
 export const FORMS: Record<string, FormDef> = {
-  vistoria: {
+  vistoria_apto: {
     titulo: "Dados para Vistoria Técnica de Entrega de Apartamento",
     sections: [
       { title: "Proprietário(a) 1 – para emissão da ART", fields: pessoa(true, [{ label: "Endereço atual" }, { label: "CEP" }, { label: "Cidade" }]) },
       { title: "Proprietário(a) 2 – caso haja", note: "Caso o imóvel possua mais de um proprietário, informe os dados de todos para emissão da ART.", fields: pessoa(false, [{ label: "Endereço atual" }]) },
-      { title: "Tipo de imóvel", fields: [{ label: "Tipo de imóvel", type: "radio", options: ["Apartamento", "Casa"], required: true }] },
       { title: "Dados do imóvel", fields: ["Nome do empreendimento/condomínio", "Nome da construtora", "Endereço completo", "Número", "Complemento", "Bairro", "Cidade", "CEP", "Bloco/Torre", "Número do apartamento", "Andar", "Área aproximada do imóvel (m²), se souber"].map((l) => ({ label: l })) },
       { title: "Entrega das chaves", fields: [{ label: "Data", type: "date" }, { label: "Horário" }, { label: "Já recebeu as chaves?", type: "radio", options: sim }] },
       { title: "Informações para a vistoria", fields: [
@@ -33,7 +32,24 @@ export const FORMS: Record<string, FormDef> = {
       { title: "Observações importantes", fields: [{ label: "Informações importantes sobre o imóvel, empreendimento ou entrega", type: "textarea" }, { label: "Você confirma que todos os dados estão corretos?", type: "radio", options: sim, required: true }] },
     ],
   },
-  projeto: {
+  vistoria_casa: {
+    titulo: "Dados para Vistoria Técnica de Entrega de Casa",
+    sections: [
+      { title: "Proprietário(a) 1 – para emissão da ART", fields: pessoa(true, [{ label: "Endereço atual" }, { label: "CEP" }, { label: "Cidade" }]) },
+      { title: "Proprietário(a) 2 – caso haja", note: "Caso o imóvel possua mais de um proprietário, informe os dados de todos para emissão da ART.", fields: pessoa(false, [{ label: "Endereço atual" }]) },
+      { title: "Dados do imóvel", fields: ["Nome do empreendimento/condomínio", "Nome da construtora", "Endereço completo", "Número", "Complemento", "Bairro", "Cidade", "CEP", "Área aproximada do imóvel (m²), se souber"].map((l) => ({ label: l })) },
+      { title: "Entrega das chaves", fields: [{ label: "Data", type: "date" }, { label: "Horário" }, { label: "Já recebeu as chaves?", type: "radio", options: sim }] },
+      { title: "Informações para a vistoria", fields: [
+        { label: "O imóvel possui piso?", type: "radio", options: sim },
+        { label: "Se sim, o piso está instalado", type: "radio", options: ["Em todos os cômodos", "Somente nas áreas molhadas"], outro: true },
+        { label: "O empreendimento informou limite de pessoas para acompanhar a vistoria?", type: "radio", options: sim },
+        { label: "Se sim, quantas pessoas são permitidas?" },
+      ] },
+      { title: "Acesso ao imóvel – quem acompanhará a vistoria", fields: [{ label: "Nome" }, { label: "Telefone/WhatsApp" }, { label: "Relação com o proprietário", type: "radio", options: ["Proprietário(a)", "Cônjuge", "Familiar", "Procurador(a)"], outro: true }] },
+      { title: "Observações importantes", fields: [{ label: "Informações importantes sobre o imóvel ou entrega", type: "textarea" }, { label: "Você confirma que todos os dados estão corretos?", type: "radio", options: sim, required: true }] },
+    ],
+  },
+    projeto: {
     titulo: "Dados do Cliente para Elaboração de Projeto Arquitetônico",
     sections: [
       { title: "Proprietário(a) 1", fields: [...pessoa(true), ...endereco] },

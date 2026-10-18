@@ -30,7 +30,7 @@ type Row = { id: string; token: string; tipo: string; cliente_nome: string; stat
 function Painel() {
   const [rows, setRows] = useState<Row[]>([]);
   const [nome, setNome] = useState("");
-  const [tipo, setTipo] = useState("vistoria");
+  const [tipo, setTipo] = useState("vistoria_apto");
   const [aberto, setAberto] = useState<string | null>(null);
   const [filtro, setFiltro] = useState("todos");
   const [busca, setBusca] = useState("");
@@ -157,7 +157,8 @@ function Painel() {
             <div className="forms-create">
               <Input className="min-w-0" aria-label="Nome do cliente" placeholder="Nome do cliente" maxLength={120} value={nome} onChange={(e) => setNome(e.target.value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ' .-]/g, "").slice(0, 120))} />
               <select aria-label="Tipo de formulário" className="form-control" value={tipo} onChange={(e) => setTipo(e.target.value)}>
-                <option value="vistoria">Vistoria</option>
+                <option value="vistoria_apto">Vistoria – Apartamento</option>
+                <option value="vistoria_casa">Vistoria – Casa</option>
                 <option value="projeto">Projeto</option>
                 <option value="contrato">Contrato</option>
               </select>
@@ -198,7 +199,7 @@ function Painel() {
                   </form>
                 ) : <b className="forms-client-name" title={r.cliente_nome}>{r.cliente_nome}</b>}
                 <div className="forms-client-meta">
-                  <span>{r.tipo === "vistoria" ? "Vistoria" : r.tipo === "projeto" ? "Projeto" : "Contrato"}</span><span aria-hidden="true">·</span><time dateTime={r.created_at}>{new Date(r.created_at).toLocaleDateString("pt-BR")}</time>
+                  <span>{r.tipo === "vistoria_apto" ? "Vistoria – Apto" : r.tipo === "vistoria_casa" ? "Vistoria – Casa" : r.tipo === "vistoria" ? "Vistoria" : r.tipo === "projeto" ? "Projeto" : "Contrato"}</span><span aria-hidden="true">·</span><time dateTime={r.created_at}>{new Date(r.created_at).toLocaleDateString("pt-BR")}</time>
                   <span className={`rounded px-2 py-0.5 text-xs ${r.status === "preenchido" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>{r.status === "preenchido" ? "Preenchido" : "Pendente"}</span>
                 </div>
               </div>

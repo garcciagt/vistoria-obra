@@ -27,9 +27,9 @@ function Home() {
   const [erro, setErro] = useState(false);
   useEffect(() => { listInspections().then(setList).catch(() => { setErro(true); setList([]); }); }, []);
 
-  const create = async () => {
+  const create = async (tipoImovel: "apartamento" | "casa") => {
     const v: Inspection = {
-      id: uid(), empreendimento: "", unidade: "", data: new Date().toISOString().slice(0, 10),
+      id: uid(), tipoImovel, empreendimento: "", unidade: "", data: new Date().toISOString().slice(0, 10),
       responsavel: localStorage.getItem("vo:resp") || "", crea: localStorage.getItem("vo:crea") || "",
       entries: {}, obsGerais: "", apontamentos: [], status: "andamento", createdAt: Date.now(), updatedAt: Date.now(),
     };
@@ -107,9 +107,14 @@ function Home() {
       </section>
 
       <div className="fixed inset-x-0 bottom-0 mx-auto max-w-xl p-4">
-        <button disabled={erro} onClick={create} className="flex h-16 w-full items-center justify-center gap-2 rounded-lg border border-primary bg-primary font-display text-2xl font-bold uppercase text-primary-foreground shadow-lg disabled:opacity-50 active:scale-[.98]">
-          <Plus className="h-7 w-7" /> Nova vistoria
-        </button>
+        <div className="flex gap-2">
+          <button disabled={erro} onClick={() => create("apartamento")} className="flex h-16 flex-1 items-center justify-center gap-2 rounded-lg border border-primary bg-primary font-display text-lg font-bold uppercase text-primary-foreground shadow-lg disabled:opacity-50 active:scale-[.98]">
+            <Plus className="h-6 w-6" /> Apartamento
+          </button>
+          <button disabled={erro} onClick={() => create("casa")} className="flex h-16 flex-1 items-center justify-center gap-2 rounded-lg border border-primary bg-primary font-display text-lg font-bold uppercase text-primary-foreground shadow-lg disabled:opacity-50 active:scale-[.98]">
+            <Plus className="h-6 w-6" /> Casa
+          </button>
+        </div>
       </div>
       <ConfirmDelete open={!!confirmar} busy={excluindo} titulo="Excluir vistoria?"
         descricao={confirmar ? `${confirmar.empreendimento || "Sem nome"}${confirmar.unidade ? ` • ${confirmar.unidade}` : ""} será apagada e não poderá ser recuperada.` : ""}

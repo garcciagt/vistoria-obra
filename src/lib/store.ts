@@ -7,6 +7,7 @@ export type Photo = { id: string; data: string; caption: string };
 export type CheckEntry = { answer?: Answer | undefined; obs?: string; photos?: Photo[]; apontamento?: boolean };
 export type Inspection = {
   id: string;
+  tipoImovel?: "apartamento" | "casa";
   empreendimento: string;
   unidade: string;
   endereco?: string;
