@@ -568,7 +568,7 @@ function GroupCard({ room, gi, v, onAll, setEntry, onRemove, onRemoveCheck, onAd
               {showList && (() => {
                 const opts = ALL_CHECKS.filter((c) => !g.checks.includes(c) && (!nc || c.toLowerCase().includes(nc.toLowerCase())));
                 return opts.length > 0 ? (
-                  <div className="absolute bottom-11 left-0 right-0 z-50 max-h-52 overflow-y-auto rounded-lg border border-border bg-card shadow-xl">
+                  <div className="absolute bottom-11 left-0 right-0 z-50 max-h-52 overflow-y-auto overscroll-contain rounded-lg border border-border bg-card shadow-xl scrollbar-thin">
                     {opts.map((c) => (
                       <button key={c} onClick={() => { setNc(c); setShowList(false); }} className="flex w-full items-center px-3 py-2.5 text-left text-sm hover:bg-accent active:bg-accent/80">
                         {c}
