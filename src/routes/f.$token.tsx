@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { FORMS, key, ruleFor } from "@/lib/forms";
 import { getFormulario, enviarFormulario } from "@/lib/formularios.functions";
-import checkEmoji from "@/assets/check-emoji.png.asset.json";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -118,7 +117,7 @@ function Page() {
 function Confirmado() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-5 p-6 text-center">
-      <img src={checkEmoji.url} alt="Enviado com sucesso" className="h-60 w-auto max-w-full" />
+      <span className="text-[120px] leading-none">✅</span>
       <p className="text-lg font-medium">Obrigado! Seus dados foram enviados com sucesso.</p>
       <div className="text-sm text-muted-foreground">
         <p className="whitespace-nowrap font-semibold text-foreground">Atenciosamente, Mariana</p>
