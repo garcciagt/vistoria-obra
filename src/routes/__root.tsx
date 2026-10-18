@@ -126,7 +126,22 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const nav = useNavigate();
-  const [authState, setAuthState] = useState<"loading" | "ready" | "denied">("loading");
+
+  // Determine initial auth state synchronously for public routes
+  const initState = (): "loading" | "ready" | "denied" => {
+    if (typeof window === "undefined") return "loading";
+    const path = window.location.pathname;
+    if (path.startsWith("/f/") || path === "/painel") return "ready";
+    return "loading";
+  };
+  const [authState, setAuthState] = useState(initState);
+
+  // Register service worker
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch(() => {});
+    }
+  }, []);
 
   useEffect(() => {
     const mobile = window.matchMedia("(pointer: coarse)").matches;
@@ -148,21 +163,15 @@ function RootComponent() {
     };
   }, []);
 
-  // Auth guard: mostra 404 se não logado (exceto rotas públicas como /f/:token e /painel)
+  // Auth guard: mostra 404 se não logado (exceto rotas públicas)
   useEffect(() => {
-    const checkAuth = async () => {
-      const path = window.location.pathname;
-      const isPublic = path.startsWith("/f/") || path === "/painel";
-      if (isPublic) { setAuthState("ready"); return; }
+    const path = window.location.pathname;
+    const isPublic = path.startsWith("/f/") || path === "/painel";
+    if (isPublic) return; // already "ready" from initState
 
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) {
-        setAuthState("denied");
-        return;
-      }
-      setAuthState("ready");
-    };
-    checkAuth();
+    supabase.auth.getSession().then(({ data }) => {
+      setAuthState(data.session ? "ready" : "denied");
+    });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_OUT") nav({ to: "/painel" });
