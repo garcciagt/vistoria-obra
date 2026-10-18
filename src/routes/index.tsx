@@ -12,10 +12,10 @@ export const Route = createFileRoute("/")({
     meta: [
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { title: "Vistoria Obra — Checklist de vistoria de apartamento" },
+      { title: "Vistoria Obra — Checklist de vistoria" },
       { name: "description", content: "Faça a vistoria passo a passo, tire fotos e exporte o checklist em PDF." },
       { property: "og:title", content: "Vistoria Obra" },
-      { property: "og:description", content: "Vistoria de apartamento passo a passo com fotos e PDF." },
+      { property: "og:description", content: "Vistoria passo a passo com fotos e PDF." },
     ],
   }),
   component: Home,
