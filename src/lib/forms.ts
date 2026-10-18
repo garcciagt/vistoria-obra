@@ -37,7 +37,7 @@ export const FORMS: Record<string, FormDef> = {
     sections: [
       { title: "Proprietário(a) 1", fields: [...pessoa(true), ...endereco] },
       { title: "Proprietário(a) 2 – caso haja", note: "Caso o terreno possua mais de um proprietário, informe os dados de todos.", fields: [...pessoa(false), ...endereco] },
-      { title: "Dados do terreno / obra", fields: ["Endereço completo do terreno", "Número", "Bairro", "Cidade", "CEP", "Lote", "Quadra", "Inscrição municipal do imóvel", "Área total do terreno (m²)", "Medida da frente do terreno (m)", "Medida do comprimento do terreno (m)", "Metragem desejada para a construção (m²)"].map((l) => ({ label: l })) },
+      { title: "Dados do terreno / obra", fields: ["Endereço completo do terreno", "Número", "Bairro", "Cidade", "CEP", "Lote", "Quadra", "Inscrição municipal do imóvel", "Área total do terreno (m²)", "Medida da frente do terreno (m)", "Medida do comprimento do terreno (m)", "Raio/Esquina", "Metragem desejada para a construção (m²)"].map((l) => ({ label: l })) },
       { title: "Informações da construção", fields: [
         { label: "Finalidade da construção", type: "radio", options: ["Residencial", "Comercial", "Mista"], outro: true },
         { label: "Tipo de construção", type: "radio", options: ["Casa térrea", "Sobrado", "Edificação comercial"], outro: true },
