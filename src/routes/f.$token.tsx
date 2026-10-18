@@ -117,7 +117,7 @@ function Page() {
 function Confirmado() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-5 p-6 text-center">
-      <span className="text-[120px] leading-none">✅</span>
+      <img src="/check-success.avif" alt="Enviado com sucesso" className="h-48 w-auto max-w-full" />
       <p className="text-lg font-medium">Obrigado! Seus dados foram enviados com sucesso.</p>
       <div className="text-sm text-muted-foreground">
         <p className="whitespace-nowrap font-semibold text-foreground">Atenciosamente, Mariana</p>
