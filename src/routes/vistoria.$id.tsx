@@ -110,6 +110,7 @@ function Page() {
   const CUSTOM_ROOMS_KEY = "vo-custom-rooms";
   const getCustomRooms = (): string[] => { try { return JSON.parse(localStorage.getItem(CUSTOM_ROOMS_KEY) || "[]"); } catch { return []; } };
   const saveCustomRoom = (n: string) => { const list = getCustomRooms(); if (!list.includes(n)) { list.push(n); list.sort(); localStorage.setItem(CUSTOM_ROOMS_KEY, JSON.stringify(list)); } };
+  const removeCustomRoom = (n: string) => { const list = getCustomRooms().filter((x) => x !== n); localStorage.setItem(CUSTOM_ROOMS_KEY, JSON.stringify(list)); };
   const addCustomRoom = () => {
     const name = customName.trim();
     if (!name) return;
@@ -267,9 +268,10 @@ function Page() {
               {getCustomRooms().length > 0 && (
                 <div className="mb-2 flex flex-wrap gap-2">
                   {getCustomRooms().map((n) => (
-                    <button key={n} onClick={() => addSavedRoom(n)} className="h-9 rounded-lg border-2 border-dashed border-primary/40 bg-primary/5 px-3 text-sm font-medium text-primary hover:bg-primary/10">
-                      {n}
-                    </button>
+                    <span key={n} className="inline-flex items-center gap-1 rounded-lg border-2 border-dashed border-primary/40 bg-primary/5 hover:bg-primary/10">
+                      <button onClick={() => addSavedRoom(n)} className="h-9 pl-3 pr-1 text-sm font-medium text-primary">{n}</button>
+                      <button onClick={() => { removeCustomRoom(n); toast.success(`${n} removido da lista`); }} className="flex h-9 w-7 items-center justify-center text-primary/50 hover:text-destructive"><X className="h-3 w-3" /></button>
+                    </span>
                   ))}
                 </div>
               )}
@@ -541,6 +543,7 @@ function GroupCard({ room, gi, v, onAll, setEntry, onRemove, onRemoveCheck, onAd
   const CUSTOM_KEY = "vo-custom-checks";
     const getCustom = (): string[] => { try { return JSON.parse(localStorage.getItem(CUSTOM_KEY) || "[]"); } catch { return []; } };
     const saveCustom = (c: string) => { const list = getCustom(); if (!list.includes(c)) { list.push(c); list.sort(); localStorage.setItem(CUSTOM_KEY, JSON.stringify(list)); } };
+    const removeCustomCheck = (c: string) => { const list = getCustom().filter((x) => x !== c); localStorage.setItem(CUSTOM_KEY, JSON.stringify(list)); };
     const allChecks = [...new Set([...ALL_CHECKS, ...getCustom()])].sort();
     const submit = () => { const c = nc.trim(); if (!c) return; if (g.checks.includes(c)) { toast.error("Verificação já existe neste item"); return; } saveCustom(c); onAddCheck(c); setNc(""); setShowList(false); };
   const entries = g.checks.map((_, ci) => v.entries[checkKey(room.id, gi, ci)]);
