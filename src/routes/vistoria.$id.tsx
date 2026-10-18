@@ -518,7 +518,11 @@ function GroupCard({ room, gi, v, onAll, setEntry, onRemove, onRemoveCheck, onAd
     document.addEventListener("pointerdown", onDown);
     return () => document.removeEventListener("pointerdown", onDown);
   }, [showList]);
-  const submit = () => { const c = nc.trim(); if (!c) return; if (g.checks.includes(c)) { toast.error("Verificação já existe neste item"); return; } onAddCheck(c); setNc(""); setShowList(false); };
+  const CUSTOM_KEY = "vo-custom-checks";
+    const getCustom = (): string[] => { try { return JSON.parse(localStorage.getItem(CUSTOM_KEY) || "[]"); } catch { return []; } };
+    const saveCustom = (c: string) => { const list = getCustom(); if (!list.includes(c)) { list.push(c); list.sort(); localStorage.setItem(CUSTOM_KEY, JSON.stringify(list)); } };
+    const allChecks = [...new Set([...ALL_CHECKS, ...getCustom()])].sort();
+    const submit = () => { const c = nc.trim(); if (!c) return; if (g.checks.includes(c)) { toast.error("Verificação já existe neste item"); return; } saveCustom(c); onAddCheck(c); setNc(""); setShowList(false); };
   const entries = g.checks.map((_, ci) => v.entries[checkKey(room.id, gi, ci)]);
   const answers = entries.map((e) => e?.answer);
   const answered = answers.filter(Boolean).length;
@@ -566,7 +570,7 @@ function GroupCard({ room, gi, v, onAll, setEntry, onRemove, onRemoveCheck, onAd
                 </button>
               </div>
               {showList && (() => {
-                const opts = ALL_CHECKS.filter((c) => !g.checks.includes(c) && (!nc || c.toLowerCase().includes(nc.toLowerCase())));
+                const opts = allChecks.filter((c) => !g.checks.includes(c) && (!nc || c.toLowerCase().includes(nc.toLowerCase())));
                 return opts.length > 0 ? (
                   <div className="absolute bottom-11 left-0 right-0 z-50 max-h-52 overflow-y-auto overscroll-contain rounded-lg border border-border bg-card shadow-xl scrollbar-thin">
                     {opts.map((c) => (
