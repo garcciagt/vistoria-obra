@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, Camera, Images, Check, X, Minus, FileDown, Trash2, ChevronDown, ChevronUp, Plus } from "lucide-react";
+import { ArrowLeft, ArrowRight, Camera, Images, Check, X, Minus, FileDown, Trash2, ChevronDown, ChevronUp, Plus, Download } from "lucide-react";
 import { toast } from "sonner";
 import { TEMPLATES, DEFAULT_ROOMS, roomsOf, totalOf, checkKey, ALL_CHECKS, roomTotal, type Room, type RoomRef, type Group } from "@/lib/checklist";
 import { getInspection, saveInspection, compressImage, uid, type Inspection, type Answer, type CheckEntry } from "@/lib/store";
@@ -509,6 +509,11 @@ function CheckRow({ label, entry, onChange, onRemove }: { label: string; entry: 
             <p className="min-w-0 text-center text-sm">{selected !== null ? photos[selected]?.caption : ""}</p>
             <Button variant="outline" size="icon" aria-label="Próxima foto" disabled={selected === null || selected >= photos.length - 1} onClick={() => setSelected((n) => n === null ? null : n + 1)}><ArrowRight /></Button>
           </div>
+          {selected !== null && photos[selected] && (
+            <Button variant="outline" className="w-full" onClick={() => { const a = document.createElement("a"); a.href = photos[selected!].data; a.download = `foto-${selected! + 1}.jpg`; a.click(); toast.success("Foto salva!"); }}>
+              <Download className="mr-2 h-4 w-4" />Salvar na galeria
+            </Button>
+          )}
         </DialogContent>
       </Dialog>
     </div>
