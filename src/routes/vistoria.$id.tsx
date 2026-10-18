@@ -544,9 +544,21 @@ function GroupCard({ room, gi, v, onAll, setEntry, onRemove, onRemoveCheck, onAd
             return <CheckRow key={`${room.id}:${g.item}:${c}`} label={c} entry={v.entries[k] || {}} onChange={(p) => setEntry(k, p)} onRemove={() => onRemoveCheck(ci)} />;
           })}
           <div className="flex gap-2 p-2">
-            <input list={`chk-${room.id}-${gi}`} value={nc} onChange={(e) => setNc(e.target.value)} onKeyDown={(e) => e.key === "Enter" && submit()}
-              placeholder="Adicionar verificação (escolha ou digite)" className="h-10 flex-1 rounded-lg border border-border bg-background px-3 text-sm" />
-            <datalist id={`chk-${room.id}-${gi}`}>{ALL_CHECKS.filter((c) => !g.checks.includes(c)).map((c) => <option key={c} value={c} />)}</datalist>
+            <div className="relative flex-1">
+              <input list={`chk-${room.id}-${gi}`} value={nc} onChange={(e) => setNc(e.target.value)} onKeyDown={(e) => e.key === "Enter" && submit()}
+                placeholder="Escolha ou digite uma verificação" className="h-10 w-full rounded-lg border border-border bg-background pl-3 pr-14 text-sm" />
+              <datalist id={`chk-${room.id}-${gi}`}>{ALL_CHECKS.filter((c) => !g.checks.includes(c)).map((c) => <option key={c} value={c} />)}</datalist>
+              <div className="absolute inset-y-0 right-0 flex items-center">
+                {nc && (
+                  <button onClick={() => setNc("")} aria-label="Limpar" className="flex h-8 w-8 items-center justify-center text-muted-foreground hover:text-foreground">
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+                <button onClick={() => { const el = document.getElementById(`chk-${room.id}-${gi}`) as HTMLDataListElement | null; const input = el?.previousElementSibling as HTMLInputElement | null; input?.focus(); input?.showPicker?.(); }} aria-label="Abrir lista" className="flex h-8 w-8 items-center justify-center text-muted-foreground hover:text-foreground">
+                  <ChevronDown className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
             <button onClick={submit} className="h-10 rounded-lg bg-primary px-3 text-sm font-bold text-primary-foreground">+</button>
           </div>
           <button onClick={closeItem} aria-label={`Fechar item ${g.item}`}
