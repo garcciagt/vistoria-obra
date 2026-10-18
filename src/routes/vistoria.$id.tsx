@@ -107,12 +107,23 @@ function Page() {
     setStep(refs.length + 1);
     toast.success(`${name} adicionado`);
   };
+  const CUSTOM_ROOMS_KEY = "vo-custom-rooms";
+  const getCustomRooms = (): string[] => { try { return JSON.parse(localStorage.getItem(CUSTOM_ROOMS_KEY) || "[]"); } catch { return []; } };
+  const saveCustomRoom = (n: string) => { const list = getCustomRooms(); if (!list.includes(n)) { list.push(n); list.sort(); localStorage.setItem(CUSTOM_ROOMS_KEY, JSON.stringify(list)); } };
   const addCustomRoom = () => {
     const name = customName.trim();
     if (!name) return;
     const refs = v.rooms ?? DEFAULT_ROOMS;
+    saveCustomRoom(name);
     update((x) => ({ ...x, rooms: [...refs, { id: `custom-${uid()}`, name, type: "custom", customGroups: [] }] }));
     setCustomName("");
+    setAdding(false);
+    setStep(refs.length + 1);
+    toast.success(`${name} adicionado`);
+  };
+  const addSavedRoom = (name: string) => {
+    const refs = v.rooms ?? DEFAULT_ROOMS;
+    update((x) => ({ ...x, rooms: [...refs, { id: `custom-${uid()}`, name, type: "custom", customGroups: [] }] }));
     setAdding(false);
     setStep(refs.length + 1);
     toast.success(`${name} adicionado`);
@@ -253,6 +264,15 @@ function Page() {
             </div>
             <div className="mt-3 border-t border-border pt-3">
               <div className="mb-2 text-sm font-semibold">Ou crie um ambiente personalizado:</div>
+              {getCustomRooms().length > 0 && (
+                <div className="mb-2 flex flex-wrap gap-2">
+                  {getCustomRooms().map((n) => (
+                    <button key={n} onClick={() => addSavedRoom(n)} className="h-9 rounded-lg border-2 border-dashed border-primary/40 bg-primary/5 px-3 text-sm font-medium text-primary hover:bg-primary/10">
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              )}
               <div className="flex gap-2">
                 <input value={customName} onChange={(e) => setCustomName(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addCustomRoom()}
