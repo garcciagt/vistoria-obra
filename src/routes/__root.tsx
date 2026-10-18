@@ -126,7 +126,7 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const nav = useNavigate();
-  const [authReady, setAuthReady] = useState(false);
+  const [authState, setAuthState] = useState<"loading" | "ready" | "denied">("loading");
 
   useEffect(() => {
     const mobile = window.matchMedia("(pointer: coarse)").matches;
@@ -153,21 +153,14 @@ function RootComponent() {
     const checkAuth = async () => {
       const path = window.location.pathname;
       const isPublic = path.startsWith("/f/") || path === "/painel";
-      if (isPublic) { setAuthReady(true); return; }
+      if (isPublic) { setAuthState("ready"); return; }
 
       const { data } = await supabase.auth.getSession();
       if (!data.session) {
-        // Se está na raiz ou qualquer rota protegida, mostra 404 genérico (não revela o app)
-        if (path === "/" || !path.startsWith("/f/")) {
-          setAuthReady(false);
-          // Mostra página "não encontrada" sem revelar o login
-          document.title = "Página não encontrada";
-          return;
-        }
-        nav({ to: "/painel" });
+        setAuthState("denied");
         return;
       }
-      setAuthReady(true);
+      setAuthState("ready");
     };
     checkAuth();
 
@@ -179,7 +172,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {authReady ? <Outlet /> : (
+      {authState === "ready" ? <Outlet /> : authState === "denied" ? (
         <div className="flex min-h-screen items-center justify-center bg-background px-4">
           <div className="max-w-md text-center">
             <h1 className="text-7xl font-bold text-foreground">404</h1>
@@ -188,6 +181,10 @@ function RootComponent() {
               A página que você procura não existe ou foi removida.
             </p>
           </div>
+        </div>
+      ) : (
+        <div className="flex min-h-screen items-center justify-center">
+          <p className="text-muted-foreground">Carregando…</p>
         </div>
       )}
       <Toaster position="top-center" richColors />
