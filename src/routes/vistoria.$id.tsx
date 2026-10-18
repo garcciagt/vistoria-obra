@@ -510,7 +510,15 @@ function GroupCard({ room, gi, v, onAll, setEntry, onRemove, onRemoveCheck, onAd
     window.setTimeout(() => { setOpen(false); setClosing(false); }, 260);
   };
   const [nc, setNc] = useState("");
-  const submit = () => { const c = nc.trim(); if (!c) return; if (g.checks.includes(c)) { toast.error("Verificação já existe neste item"); return; } onAddCheck(c); setNc(""); };
+  const [showList, setShowList] = useState(false);
+  const dropRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!showList) return;
+    const onDown = (e: PointerEvent) => { if (dropRef.current && !dropRef.current.contains(e.target as Node)) setShowList(false); };
+    document.addEventListener("pointerdown", onDown);
+    return () => document.removeEventListener("pointerdown", onDown);
+  }, [showList]);
+  const submit = () => { const c = nc.trim(); if (!c) return; if (g.checks.includes(c)) { toast.error("Verificação já existe neste item"); return; } onAddCheck(c); setNc(""); setShowList(false); };
   const entries = g.checks.map((_, ci) => v.entries[checkKey(room.id, gi, ci)]);
   const answers = entries.map((e) => e?.answer);
   const answered = answers.filter(Boolean).length;
@@ -544,20 +552,31 @@ function GroupCard({ room, gi, v, onAll, setEntry, onRemove, onRemoveCheck, onAd
             return <CheckRow key={`${room.id}:${g.item}:${c}`} label={c} entry={v.entries[k] || {}} onChange={(p) => setEntry(k, p)} onRemove={() => onRemoveCheck(ci)} />;
           })}
           <div className="flex gap-2 p-2">
-            <div className="relative flex-1">
-              <input list={`chk-${room.id}-${gi}`} value={nc} onChange={(e) => setNc(e.target.value)} onKeyDown={(e) => e.key === "Enter" && submit()}
+            <div ref={dropRef} className="relative flex-1">
+              <input value={nc} onChange={(e) => { setNc(e.target.value); setShowList(true); }} onKeyDown={(e) => e.key === "Enter" && submit()} onFocus={() => setShowList(true)}
                 placeholder="Escolha ou digite uma verificação" className="h-10 w-full rounded-lg border border-border bg-background pl-3 pr-14 text-sm" />
-              <datalist id={`chk-${room.id}-${gi}`}>{ALL_CHECKS.filter((c) => !g.checks.includes(c)).map((c) => <option key={c} value={c} />)}</datalist>
               <div className="absolute inset-y-0 right-0 flex items-center">
                 {nc && (
-                  <button onClick={() => setNc("")} aria-label="Limpar" className="flex h-8 w-8 items-center justify-center text-muted-foreground hover:text-foreground">
+                  <button onClick={() => { setNc(""); setShowList(false); }} aria-label="Limpar" className="flex h-8 w-8 items-center justify-center text-muted-foreground hover:text-foreground">
                     <X className="h-4 w-4" />
                   </button>
                 )}
-                <button onClick={() => { const el = document.getElementById(`chk-${room.id}-${gi}`) as HTMLDataListElement | null; const input = el?.previousElementSibling as HTMLInputElement | null; input?.focus(); input?.showPicker?.(); }} aria-label="Abrir lista" className="flex h-8 w-8 items-center justify-center text-muted-foreground hover:text-foreground">
-                  <ChevronDown className="h-4 w-4" />
+                <button onClick={() => setShowList((s) => !s)} aria-label="Abrir lista" className="flex h-8 w-8 items-center justify-center text-muted-foreground hover:text-foreground">
+                  <ChevronDown className={`h-4 w-4 transition-transform ${showList ? "rotate-180" : ""}`} />
                 </button>
               </div>
+              {showList && (() => {
+                const opts = ALL_CHECKS.filter((c) => !g.checks.includes(c) && (!nc || c.toLowerCase().includes(nc.toLowerCase())));
+                return opts.length > 0 ? (
+                  <div className="absolute left-0 right-0 top-11 z-20 max-h-48 overflow-y-auto rounded-lg border border-border bg-card shadow-lg">
+                    {opts.map((c) => (
+                      <button key={c} onClick={() => { setNc(c); setShowList(false); }} className="flex w-full items-center px-3 py-2 text-left text-sm hover:bg-accent">
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                ) : null;
+              })()}
             </div>
             <button onClick={submit} className="h-10 rounded-lg bg-primary px-3 text-sm font-bold text-primary-foreground">+</button>
           </div>
