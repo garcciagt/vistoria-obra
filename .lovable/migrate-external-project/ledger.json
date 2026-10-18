@@ -1,0 +1,11 @@
+{
+  "scope": "Layout-only import; existing Cloud and capabilities remain authoritative",
+  "capabilities": [
+    {"capability":"layout code","source":"lovable-project-139c5898.zip","outcome":"Compatible presentation merged: compact forms menus, creation/date panels, shared confirmation dialogs, safe-area headers, photo gallery and enlargement, client confirmation; original persistence, validation and PDF exports retained","status":"implemented","next_action":null},
+    {"capability":"source functional changes","source":"lovable-project-139c5898.zip","outcome":"Excluded test database, autosave replacement, rename mutation, removed checks, ART and apontamento changes to preserve authoritative application behavior","status":"excluded","next_action":null},
+    {"capability":"interactive verification","source":"current update","outcome":"User requested to test in preview; no manual browser checks","status":"pending","next_action":"User verifies updated screens"},
+    {"capability":"schema, records, auth identities, authorization, secrets","source":"existing project","outcome":"preserve unchanged; no migration","status":"preserved","next_action":null},
+    {"capability":"forms, inspections, PDFs, public links, email configuration","source":"existing project","outcome":"preserve existing behavior","status":"preserved","next_action":null},
+    {"capability":"assets, external providers, endpoints, callbacks, webhooks, schedules, cutover","source":"existing project","outcome":"no changes","status":"preserved","next_action":null}
+  ]
+}

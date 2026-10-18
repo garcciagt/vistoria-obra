@@ -1,0 +1,9 @@
+{
+  "name": "Vistoria Obra",
+  "short_name": "Vistoria",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f3ea",
+  "theme_color": "#1b2a4a",
+  "icons": [{ "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }]
+}

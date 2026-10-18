@@ -1,0 +1,6 @@
+- [x] Aplicar apenas o layout do ZIP, preservando banco, formulários e vistorias.
+- [x] Verificar telas e navegação existentes.
+- [x] Aplicar o visual compatível do ZIP 139c5898 sem alterar persistência, validação ou exportação.
+- [x] Aplicar atualizações do ZIP 43735ddb (layout, UX, autosave, validação, ART/apontamentos) mantendo o banco atual; excluído banco de teste do ZIP.
+- [ ] Conferência das telas pelo usuário, conforme solicitado.
+- [ ] Reduzir o peso das listas de formulários/vistorias e ampliar o armazenamento local dos rascunhos, preservando o banco.
