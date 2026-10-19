@@ -132,6 +132,12 @@ function RootComponent() {
     if (typeof window === "undefined") return "loading";
     const path = window.location.pathname;
     if (path.startsWith("/f/") || path === "/painel") return "ready";
+    // If URL has invite/recovery token, redirect to /painel to handle it
+    const hash = window.location.hash;
+    if (hash && (hash.includes("type=recovery") || hash.includes("type=invite") || hash.includes("type=signup"))) {
+      window.location.href = "/painel" + hash;
+      return "loading";
+    }
     // Check for existing Supabase session token to skip loading flash
     try {
       const key = Object.keys(localStorage).find((k) => k.startsWith("sb-") && k.endsWith("-auth-token"));
