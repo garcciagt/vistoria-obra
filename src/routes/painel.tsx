@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Building2, LogIn, UserPlus, Eye, EyeOff } from "lucide-react";
+import { Building2, LogIn, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/painel")({
@@ -18,10 +18,9 @@ export const Route = createFileRoute("/painel")({
 
 function LoginPage() {
   const nav = useNavigate();
-  const [mode, setMode] = useState<"login" | "signup" | "forgot">("login");
+  const [mode, setMode] = useState<"login" | "forgot">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [nome, setNome] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -44,24 +43,6 @@ function LoginPage() {
       return;
     }
     nav({ to: "/" });
-  };
-
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password.length < 6) { toast.error("A senha deve ter pelo menos 6 caracteres."); return; }
-    setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { nome } },
-    });
-    setLoading(false);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success("Conta criada! Verifique seu e-mail para confirmar.");
-    setMode("login");
   };
 
   const handleForgot = async (e: React.FormEvent) => {
@@ -87,7 +68,7 @@ function LoginPage() {
             </h1>
           </div>
           <p className="mt-2 text-primary-foreground/70">
-            {mode === "login" ? "Entre na sua conta" : mode === "signup" ? "Crie sua conta" : "Recuperar senha"}
+            {mode === "login" ? "Entre na sua conta" : "Recuperar senha"}
           </p>
         </div>
 
@@ -99,10 +80,7 @@ function LoginPage() {
               <button type="button" className="w-full text-center text-sm text-muted-foreground underline" onClick={() => setMode("login")}>Voltar ao login</button>
             </form>
           ) : (
-            <form onSubmit={mode === "login" ? handleLogin : handleSignup} className="space-y-4">
-              {mode === "signup" && (
-                <Input placeholder="Seu nome" required maxLength={120} value={nome} onChange={(e) => setNome(e.target.value)} />
-              )}
+            <form onSubmit={handleLogin} className="space-y-4">
               <Input type="email" placeholder="E-mail" required value={email} onChange={(e) => setEmail(e.target.value)} />
               <div className="relative">
                 <Input type={showPw ? "text" : "password"} placeholder="Senha" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className="pr-10" />
@@ -111,22 +89,18 @@ function LoginPage() {
                 </button>
               </div>
               <Button type="submit" className="w-full gap-2" disabled={loading}>
-                {mode === "login" ? <LogIn className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
-                {loading ? "Aguarde…" : mode === "login" ? "Entrar" : "Criar conta"}
+                <LogIn className="h-4 w-4" />
+                {loading ? "Aguarde…" : "Entrar"}
               </Button>
-              {mode === "login" && (
-                <button type="button" className="w-full text-center text-sm text-muted-foreground underline" onClick={() => setMode("forgot")}>Esqueci minha senha</button>
-              )}
+              <button type="button" className="w-full text-center text-sm text-muted-foreground underline" onClick={() => setMode("forgot")}>Esqueci minha senha</button>
             </form>
           )}
 
-          <div className="mt-4 border-t pt-4 text-center text-sm text-muted-foreground">
-            {mode === "login" ? (
-              <>Não tem conta? <button type="button" className="font-semibold text-primary underline" onClick={() => setMode("signup")}>Criar conta</button></>
-            ) : mode === "signup" ? (
-              <>Já tem conta? <button type="button" className="font-semibold text-primary underline" onClick={() => setMode("login")}>Entrar</button></>
-            ) : null}
-          </div>
+          {mode === "forgot" && (
+            <div className="mt-4 border-t pt-4 text-center text-sm text-muted-foreground">
+              <button type="button" className="font-semibold text-primary underline" onClick={() => setMode("login")}>Voltar ao login</button>
+            </div>
+          )}
         </div>
       </div>
     </main>
