@@ -179,7 +179,7 @@ function RootComponent() {
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_OUT") nav({ to: "/painel" });
+      if (event === "SIGNED_OUT") { setAuthState("denied"); nav({ to: "/painel" }); }
     });
     return () => subscription.unsubscribe();
   }, []);
