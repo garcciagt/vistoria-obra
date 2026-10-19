@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Building2, LogIn, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
+import { checkUserBanned } from "@/lib/auth.functions";
 
 export const Route = createFileRoute("/painel")({
   head: () => ({
@@ -55,9 +56,13 @@ function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
-      toast.error(error.message === "Invalid login credentials"
-        ? "E-mail ou senha incorretos."
-        : error.message);
+      if (error.message.toLowerCase().includes("banned")) {
+        toast.error("Usuário pausado temporariamente.");
+      } else {
+        toast.error(error.message === "Invalid login credentials"
+          ? "E-mail ou senha incorretos."
+          : error.message);
+      }
       return;
     }
     nav({ to: "/" });
@@ -70,6 +75,12 @@ function LoginPage() {
     if (!lookupErr && data === false) {
       setLoading(false);
       toast.error("Este e-mail não está cadastrado.");
+      return;
+    }
+    const { banned } = await checkUserBanned({ data: email });
+    if (banned) {
+      setLoading(false);
+      toast.error("Usuário pausado temporariamente.");
       return;
     }
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
