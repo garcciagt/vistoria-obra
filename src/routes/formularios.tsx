@@ -228,11 +228,13 @@ function Painel() {
         <div key={r.id} ref={editando === r.id ? editRef : null} className="space-y-3 overflow-hidden rounded-lg border bg-card p-4">
           <div className="grid min-w-0 gap-3">
             <div className="forms-client-summary">
-              <button onClick={() => toggleSelect(r.id)} className={`flex items-center mr-2 transition-all duration-200 ${selectMode ? "opacity-100 w-7 scale-100" : "opacity-0 w-0 scale-90 pointer-events-none"}`}>
-                <div className={`h-5 w-5 rounded border-2 flex items-center justify-center transition-colors duration-150 ${selected.has(r.id) ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground/40"}`}>
-                  {selected.has(r.id) && <Check className="h-3 w-3" />}
-                </div>
-              </button>
+              {selectMode && (
+                <button onClick={() => toggleSelect(r.id)} className="flex items-center mr-2">
+                  <div className={`h-5 w-5 rounded border-2 flex items-center justify-center ${selected.has(r.id) ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground/40"}`}>
+                    {selected.has(r.id) && <Check className="h-3 w-3" />}
+                  </div>
+                </button>
+              )}
               <div className="forms-client-details">
                 {editando === r.id ? (
                   <form className="contents" onSubmit={(e) => { e.preventDefault(); salvarNome(r.id); }}>

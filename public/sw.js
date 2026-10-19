@@ -1,4 +1,4 @@
-const CACHE = 'vo-v8';
+const CACHE = 'vo-v9';
 const PRECACHE = ["/manifest.webmanifest", "/icon-512.png"];
 
 self.addEventListener("install", (e) => {
