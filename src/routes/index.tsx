@@ -18,10 +18,10 @@ export const Route = createFileRoute("/")({
       { property: "og:description", content: "Vistoria passo a passo com fotos e PDF." },
     ],
   }),
-  component: Home,
+  component: HomePage,
 });
 
-function Home() {
+function HomePage() {
   const [list, setList] = useState<Inspection[] | null>(null);
   const nav = useNavigate();
   const [erro, setErro] = useState(false);
