@@ -129,18 +129,18 @@ function HomePage() {
                 </div>
                 <ChevronRight className="h-6 w-6 text-muted-foreground" />
               </Link>
-              <div className="relative overflow-hidden border-l border-border" style={{ width: selectMode ? 48 : armed === v.id ? "auto" : 48, transition: "width 0.2s ease" }}>
-                <button ref={armed === v.id ? armedRef : undefined} onClick={() => remove(v.id)} aria-label="Excluir"
-                  className={`absolute inset-0 flex items-center justify-center gap-1 transition-all duration-200 ${selectMode ? "opacity-0 pointer-events-none scale-90" : "opacity-100 scale-100"} ${armed === v.id ? "bg-destructive px-4 text-sm font-bold text-destructive-foreground" : "px-4 text-destructive"}`}>
-                  <Trash2 className="h-5 w-5" />{armed === v.id && "Excluir"}
-                </button>
-                <button onClick={() => toggleSelect(v.id)} aria-label="Selecionar"
-                  className={`absolute inset-0 flex items-center justify-center transition-all duration-200 ${selectMode ? "opacity-100 scale-100" : "opacity-0 pointer-events-none scale-90"}`}>
+              {selectMode ? (
+                <button onClick={() => toggleSelect(v.id)} aria-label="Selecionar" className="border-l border-border px-4 flex items-center justify-center">
                   <div className={`h-5 w-5 rounded border-2 flex items-center justify-center transition-colors duration-150 ${selected.has(v.id) ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground/40"}`}>
                     {selected.has(v.id) && <Check className="h-3 w-3" />}
                   </div>
                 </button>
-              </div>
+              ) : (
+                <button ref={armed === v.id ? armedRef : undefined} onClick={() => remove(v.id)} aria-label="Excluir"
+                  className={armed === v.id ? "flex items-center gap-1 bg-destructive px-4 text-sm font-bold text-destructive-foreground" : "border-l border-border px-4 text-destructive"}>
+                  <Trash2 className="h-5 w-5" />{armed === v.id && "Excluir"}
+                </button>
+              )}
             </div>
           );
         })}
