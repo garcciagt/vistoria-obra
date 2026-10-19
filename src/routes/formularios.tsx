@@ -65,7 +65,8 @@ function Painel() {
   const visibleRows = rows.filter((r) => {
     const date = new Date(r.created_at);
     const day = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-    return (filtro === "todos" || r.tipo === filtro) && normalize(r.cliente_nome).includes(normalize(busca)) && (!inicio || day >= inicio) && (!fim || day <= fim);
+    const matchFiltro = filtro === "todos" || r.tipo === filtro || (filtro === "vistoria" && (r.tipo === "vistoria_apto" || r.tipo === "vistoria_casa" || r.tipo === "vistoria"));
+    return matchFiltro && normalize(r.cliente_nome).includes(normalize(busca)) && (!inicio || day >= inicio) && (!fim || day <= fim);
   });
   const salvarNome = async (id: string) => {
     const value = nomeEditado.trim();
@@ -172,7 +173,7 @@ function Painel() {
           <div className="relative min-w-0"><Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" /><Input aria-label="Pesquisar cliente" placeholder="Pesquisar nome do cliente" className="pl-9" value={busca} onChange={(e) => setBusca(e.target.value)} /></div>
           <Button variant="outline" onClick={load} disabled={loading}><RefreshCw className={loading ? "animate-spin" : ""} />{loading ? "Atualizando…" : "Atualizar"}</Button>
           <div className="forms-types" role="group" aria-label="Filtrar formulários">
-            {([["todos", "Todos"], ["projeto", "Projetos"], ["vistoria", "Vistorias"]] as const).map(([value, label]) => <Button key={value} size="sm" variant={filtro === value ? "default" : "outline"} aria-pressed={filtro === value} onClick={() => setFiltro(value)}>{label}</Button>)}
+            {([["todos", "Todos"], ["projeto", "Projetos"], ["vistoria", "Vistorias"]] as const).map(([value, label]) => <Button key={value} size="sm" variant={filtro === value ? "default" : "outline"} aria-pressed={filtro === value} onClick={() => setFiltro(value as string)}>{label}</Button>)}
           </div>
         </div>
         <div className="forms-data">
@@ -199,7 +200,7 @@ function Painel() {
                   </form>
                 ) : <b className="forms-client-name" title={r.cliente_nome}>{r.cliente_nome}</b>}
                 <div className="forms-client-meta">
-                  <span>{r.tipo === "vistoria_apto" ? "Vistoria – Apto" : r.tipo === "vistoria_casa" ? "Vistoria – Casa" : r.tipo === "vistoria" ? "Vistoria" : r.tipo === "projeto" ? "Projeto" : "Contrato"}</span><span aria-hidden="true">·</span><time dateTime={r.created_at}>{new Date(r.created_at).toLocaleDateString("pt-BR")}</time>
+                  <span>{{ vistoria: "Vistoria", vistoria_apto: "Vistoria – Apto", vistoria_casa: "Vistoria – Casa", projeto: "Projeto", contrato: "Contrato" }[r.tipo] || r.tipo}</span><span aria-hidden="true">·</span><time dateTime={r.created_at}>{new Date(r.created_at).toLocaleDateString("pt-BR")}</time>
                   <span className={`rounded px-2 py-0.5 text-xs ${r.status === "preenchido" ? "bg-primary text-primary-foreground" : "bg-muted"}`}>{r.status === "preenchido" ? "Preenchido" : "Pendente"}</span>
                 </div>
               </div>

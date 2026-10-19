@@ -15,6 +15,23 @@ const pessoa = (req: boolean, extra: Field[] = []): Field[] => [
 const endereco: Field[] = ["Rua/Avenida", "Número", "Complemento", "Bairro", "Cidade", "CEP"].map((l) => ({ label: l }));
 
 export const FORMS: Record<string, FormDef> = {
+  vistoria: {
+    titulo: "Dados para Vistoria Técnica de Entrega de Apartamento",
+    sections: [
+      { title: "Proprietário(a) 1 – para emissão da ART", fields: pessoa(true, [{ label: "Endereço atual" }, { label: "CEP" }, { label: "Cidade" }]) },
+      { title: "Proprietário(a) 2 – caso haja", note: "Caso o imóvel possua mais de um proprietário, informe os dados de todos para emissão da ART.", fields: pessoa(false, [{ label: "Endereço atual" }]) },
+      { title: "Dados do imóvel", fields: ["Nome do empreendimento/condomínio", "Nome da construtora", "Endereço completo", "Número", "Complemento", "Bairro", "Cidade", "CEP", "Bloco/Torre", "Número do apartamento", "Andar", "Área aproximada do imóvel (m²), se souber"].map((l) => ({ label: l })) },
+      { title: "Entrega das chaves", fields: [{ label: "Data", type: "date" }, { label: "Horário" }, { label: "Já recebeu as chaves?", type: "radio", options: sim }] },
+      { title: "Informações para a vistoria", fields: [
+        { label: "O imóvel possui piso?", type: "radio", options: sim },
+        { label: "Se sim, o piso está instalado", type: "radio", options: ["Em todos os cômodos", "Somente nas áreas molhadas"], outro: true },
+        { label: "O empreendimento informou limite de pessoas para acompanhar a vistoria?", type: "radio", options: sim },
+        { label: "Se sim, quantas pessoas são permitidas?" },
+      ] },
+      { title: "Acesso ao imóvel – quem acompanhará a vistoria", fields: [{ label: "Nome" }, { label: "Telefone/WhatsApp" }, { label: "Relação com o proprietário", type: "radio", options: ["Proprietário(a)", "Cônjuge", "Familiar", "Procurador(a)"], outro: true }] },
+      { title: "Observações importantes", fields: [{ label: "Informações importantes sobre o imóvel, empreendimento ou entrega", type: "textarea" }, { label: "Você confirma que todos os dados estão corretos?", type: "radio", options: sim, required: true }] },
+    ],
+  },
   vistoria_apto: {
     titulo: "Dados para Vistoria Técnica de Entrega de Apartamento",
     sections: [
@@ -46,10 +63,10 @@ export const FORMS: Record<string, FormDef> = {
         { label: "Se sim, quantas pessoas são permitidas?" },
       ] },
       { title: "Acesso ao imóvel – quem acompanhará a vistoria", fields: [{ label: "Nome" }, { label: "Telefone/WhatsApp" }, { label: "Relação com o proprietário", type: "radio", options: ["Proprietário(a)", "Cônjuge", "Familiar", "Procurador(a)"], outro: true }] },
-      { title: "Observações importantes", fields: [{ label: "Informações importantes sobre o imóvel ou entrega", type: "textarea" }, { label: "Você confirma que todos os dados estão corretos?", type: "radio", options: sim, required: true }] },
+      { title: "Observações importantes", fields: [{ label: "Informações importantes sobre o imóvel, empreendimento ou entrega", type: "textarea" }, { label: "Você confirma que todos os dados estão corretos?", type: "radio", options: sim, required: true }] },
     ],
   },
-    projeto: {
+  projeto: {
     titulo: "Dados do Cliente para Elaboração de Projeto Arquitetônico",
     sections: [
       { title: "Proprietário(a) 1", fields: [...pessoa(true), ...endereco] },
@@ -65,51 +82,15 @@ export const FORMS: Record<string, FormDef> = {
   contrato: {
     titulo: "Dados para Geração de Contrato de Vistoria Técnica",
     sections: [
-      { title: "Dados do contratante", fields: [
-        { label: "Nome completo", required: true },
-        { label: "CPF", required: true },
-        { label: "RG" },
-        { label: "Data de nascimento", type: "date" },
-        { label: "Endereço completo", required: true },
-        { label: "Número" },
-        { label: "Bairro" },
-        { label: "Cidade" },
-        { label: "Telefone/WhatsApp", required: true },
-        { label: "E-mail", type: "email", required: true },
-      ] },
-      { title: "Dados do imóvel", fields: [
-        { label: "Tipo de imóvel", type: "radio", options: ["Apartamento", "Casa"], required: true },
-        { label: "Nome do empreendimento/condomínio" },
-        { label: "Nome da construtora" },
-        { label: "Endereço completo do imóvel", required: true },
-        { label: "Número" },
-        { label: "Bairro" },
-        { label: "Cidade" },
-        { label: "CEP" },
-        { label: "Bloco/Torre" },
-        { label: "Número do apartamento" },
-        { label: "Andar" },
-        { label: "Área aproximada do imóvel (m²), se souber" },
-      ] },
-      { title: "Data e horário da vistoria", fields: [
-        { label: "Data", type: "date", required: true },
-        { label: "Horário", required: true },
-      ] },
+      { title: "Dados do contratante", fields: pessoa(true, [{ label: "Endereço atual" }, { label: "CEP" }, { label: "Cidade" }, { label: "Estado" }]) },
+      { title: "Dados do imóvel", fields: ["Nome do empreendimento/condomínio", "Endereço completo", "Número", "Complemento", "Bairro", "Cidade", "CEP", "Bloco/Torre", "Número do apartamento", "Andar"].map((l) => ({ label: l })) },
+      { title: "Data e horário da vistoria", fields: [{ label: "Data da vistoria", type: "date" }, { label: "Horário da vistoria" }] },
       { title: "Informações adicionais", fields: [
-        { label: "O imóvel possui piso?", type: "radio", options: ["Sim", "Não"] },
-        { label: "Se sim, o piso está instalado", type: "radio", options: ["Em todos os cômodos", "Somente nas áreas molhadas"], outro: true },
-        { label: "Limite de pessoas para acompanhar a vistoria?", type: "radio", options: ["Sim", "Não"] },
-        { label: "Se sim, quantas pessoas são permitidas?" },
+        { label: "Área aproximada do imóvel (m²), se souber" },
+        { label: "O imóvel possui piso?", type: "radio", options: sim },
       ] },
-      { title: "Quem acompanhará a vistoria", fields: [
-        { label: "Nome" },
-        { label: "Telefone/WhatsApp" },
-        { label: "Relação com o proprietário", type: "radio", options: ["Proprietário(a)", "Cônjuge", "Familiar", "Procurador(a)"], outro: true },
-      ] },
-      { title: "Observações e confirmação", fields: [
-        { label: "Informações importantes sobre o imóvel ou a vistoria", type: "textarea" },
-        { label: "Você confirma que todas as informações estão corretas?", type: "radio", options: ["Sim", "Não"], required: true },
-      ] },
+      { title: "Acompanhante na vistoria", fields: [{ label: "Nome do acompanhante" }, { label: "Telefone/WhatsApp do acompanhante" }, { label: "Relação com o contratante", type: "radio", options: ["Proprietário(a)", "Cônjuge", "Familiar", "Procurador(a)"], outro: true }] },
+      { title: "Observações", fields: [{ label: "Observações ou informações complementares", type: "textarea" }, { label: "Você confirma que todos os dados estão corretos?", type: "radio", options: sim, required: true }] },
     ],
   },
 };
