@@ -85,9 +85,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "theme-color", content: "#1b2a4a" },
       { title: "Vistoria Obra" },
-      { name: "description", content: "Checklist de vistoria de apartamento com fotos e PDF." },
+      { name: "description", content: "Checklist de vistoria com fotos e PDF." },
       { property: "og:title", content: "Vistoria Obra" },
-      { property: "og:description", content: "Checklist de vistoria de apartamento com fotos e PDF." },
+      { property: "og:description", content: "Checklist de vistoria com fotos e PDF." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -127,11 +127,16 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const nav = useNavigate();
 
-  // Determine initial auth state synchronously for public routes
+  // Determine initial auth state synchronously — avoid flash
   const initState = (): "loading" | "ready" | "denied" => {
     if (typeof window === "undefined") return "loading";
     const path = window.location.pathname;
     if (path.startsWith("/f/") || path === "/painel") return "ready";
+    // Check for existing Supabase session token to skip loading flash
+    try {
+      const key = Object.keys(localStorage).find((k) => k.startsWith("sb-") && k.endsWith("-auth-token"));
+      if (key && localStorage.getItem(key)) return "ready";
+    } catch {}
     return "loading";
   };
   const [authState, setAuthState] = useState(initState);
