@@ -4,6 +4,7 @@ import { useDismiss } from "@/hooks/use-dismiss";
 import { ConfirmDelete } from "@/components/ConfirmDelete";
 import { Plus, Building2, Trash2, ChevronRight, LogOut, Home, Building, CheckSquare, Check } from "lucide-react";
 import { ConfirmBulkDelete } from "@/components/ConfirmBulkDelete";
+import { UndoBar, type UndoEntry } from "@/components/UndoBar";
 import { listInspections, saveInspection, deleteInspection, uid, type Inspection } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
 import { totalOf } from "@/lib/checklist";
@@ -48,6 +49,8 @@ function HomePage() {
   const toggleSelect = (id: string) => setSelected((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [bulkConfirm, setBulkConfirm] = useState(false);
+  const [undoEntry, setUndoEntry] = useState<UndoEntry | null>(null);
+  const pendingDeleteRef = useRef<{ id: string; timer: ReturnType<typeof setTimeout> } | null>(null);
   const bulkDelete = async () => {
     if (!selected.size) return;
     setBulkDeleting(true);
@@ -65,13 +68,29 @@ function HomePage() {
   };
   const excluirConfirmado = async () => {
     if (!confirmar) return;
-    const id = confirmar.id;
+    const removida = confirmar;
     setConfirmar(null);
-    setExcluindo(true);
-    try {
-      await deleteInspection(id);
-      setList(await listInspections());
-    } finally { setExcluindo(false); }
+    // Remove visually immediately
+    setList((prev) => prev?.filter((v) => v.id !== removida.id) ?? null);
+    // Cancel any previous pending delete
+    if (pendingDeleteRef.current) clearTimeout(pendingDeleteRef.current.timer);
+    // Schedule actual delete after 5s
+    const timer = setTimeout(async () => {
+      pendingDeleteRef.current = null;
+      await deleteInspection(removida.id);
+    }, 5200);
+    pendingDeleteRef.current = { id: removida.id, timer };
+    setUndoEntry({
+      label: `"${removida.empreendimento || "Sem nome"}" excluída`,
+      undo: async () => {
+        if (pendingDeleteRef.current?.id === removida.id) {
+          clearTimeout(pendingDeleteRef.current.timer);
+          pendingDeleteRef.current = null;
+        }
+        // Re-add to list
+        setList((prev) => prev ? [...prev, removida].sort((a, b) => b.createdAt - a.createdAt) : [removida]);
+      },
+    });
   };
 
   return (
@@ -161,6 +180,7 @@ function HomePage() {
         onConfirm={excluirConfirmado} onCancel={() => setConfirmar(null)} />
       <ConfirmBulkDelete open={bulkConfirm} count={selected.size} label="vistorias" busy={bulkDeleting}
         onConfirm={bulkDelete} onCancel={() => setBulkConfirm(false)} />
+      <UndoBar entry={undoEntry} onExpire={() => setUndoEntry(null)} />
     </main>
   );
 }

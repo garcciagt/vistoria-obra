@@ -11,6 +11,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { useDismiss } from "@/hooks/use-dismiss";
 import { ConfirmDelete } from "@/components/ConfirmDelete";
 import { ConfirmBulkDelete } from "@/components/ConfirmBulkDelete";
+import { UndoBar, type UndoEntry } from "@/components/UndoBar";
 
 export const Route = createFileRoute("/formularios")({
   head: () => ({
@@ -53,6 +54,8 @@ function Painel() {
   const toggleSelect = (id: string) => setSelected((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [bulkConfirm, setBulkConfirm] = useState(false);
+  const [undoEntry, setUndoEntry] = useState<UndoEntry | null>(null);
+  const pendingDeleteRef = useRef<{ id: string; timer: ReturnType<typeof setTimeout> } | null>(null);
   const bulkDelete = async () => {
     if (!selected.size) return;
     setBulkDeleting(true);
@@ -104,14 +107,30 @@ function Painel() {
   const cancelarEdicao = () => { setEditando(null); setNomeEditado(""); };
   const removerFormulario = async (r: Row) => {
     setConfirmar(null);
-    setExcluindo(true);
-    try {
-      const result = await excluirFormulario({ data: { id: r.id } });
-      if (!result.ok) throw new Error("Falha ao excluir.");
-      setRows((previous) => previous.filter((row) => row.id !== r.id));
-      toast.success("Formulário excluído.");
-    } catch { toast.error("Não foi possível excluir o formulário."); }
-    finally { setExcluindo(false); setExcluir(null); }
+    setExcluir(null);
+    // Remove visually immediately
+    setRows((prev) => prev.filter((row) => row.id !== r.id));
+    // Cancel any previous pending delete
+    if (pendingDeleteRef.current) clearTimeout(pendingDeleteRef.current.timer);
+    // Schedule actual delete after 5s
+    const timer = setTimeout(async () => {
+      pendingDeleteRef.current = null;
+      try {
+        const result = await excluirFormulario({ data: { id: r.id } });
+        if (!result.ok) toast.error("Erro ao excluir formulário.");
+      } catch { toast.error("Erro ao excluir formulário."); }
+    }, 5200);
+    pendingDeleteRef.current = { id: r.id, timer };
+    setUndoEntry({
+      label: `"${r.cliente_nome}" excluído`,
+      undo: async () => {
+        if (pendingDeleteRef.current?.id === r.id) {
+          clearTimeout(pendingDeleteRef.current.timer);
+          pendingDeleteRef.current = null;
+        }
+        setRows((prev) => [r, ...prev]);
+      },
+    });
   };
   useEffect(() => { load(); }, []);
   const editRef = useRef<HTMLDivElement | null>(null);
@@ -326,6 +345,7 @@ function Painel() {
         onConfirm={() => { if (confirmar) removerFormulario(confirmar); }} onCancel={() => setConfirmar(null)} />
       <ConfirmBulkDelete open={bulkConfirm} count={selected.size} label="formulários" busy={bulkDeleting}
         onConfirm={bulkDelete} onCancel={() => setBulkConfirm(false)} />
+      <UndoBar entry={undoEntry} onExpire={() => setUndoEntry(null)} />
 
     </main>
   );
