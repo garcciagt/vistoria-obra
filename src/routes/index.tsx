@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useDismiss } from "@/hooks/use-dismiss";
 import { ConfirmDelete } from "@/components/ConfirmDelete";
-import { Plus, Building2, Trash2, ChevronRight, LogOut, Home, Building } from "lucide-react";
+import { Plus, Building2, Trash2, ChevronRight, LogOut, Home, Building, CheckSquare, Check } from "lucide-react";
 import { listInspections, saveInspection, deleteInspection, uid, type Inspection } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
 import { totalOf } from "@/lib/checklist";
@@ -42,6 +42,20 @@ function HomePage() {
   useDismiss(!!armed, () => setArmed(null), [armedRef]);
   const [confirmar, setConfirmar] = useState<Inspection | null>(null);
   const [excluindo, setExcluindo] = useState(false);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const toggleSelect = (id: string) => setSelected((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const bulkDelete = async () => {
+    if (!selected.size) return;
+    setBulkDeleting(true);
+    try {
+      for (const id of selected) await deleteInspection(id);
+      setList(await listInspections());
+      setSelected(new Set());
+      setSelectMode(false);
+    } finally { setBulkDeleting(false); }
+  };
   const remove = (id: string) => {
     if (armed !== id) { setArmed(id); return; }
     setArmed(null);
@@ -72,6 +86,19 @@ function HomePage() {
         <Link to="/formularios" className="mt-4 block rounded-xl bg-secondary px-4 py-3 text-center text-lg font-bold text-secondary-foreground shadow">📋 Formulários de clientes</Link>
       </header>
 
+      {list && list.length > 1 && (
+        <div className="flex items-center justify-end gap-2 px-4 pt-2">
+          {selectMode && selected.size > 0 && (
+            <button onClick={bulkDelete} disabled={bulkDeleting} className="text-xs text-destructive underline">
+              {bulkDeleting ? "Excluindo…" : `Excluir ${selected.size} selecionada${selected.size > 1 ? "s" : ""}`}
+            </button>
+          )}
+          <button onClick={() => { setSelectMode((m) => !m); setSelected(new Set()); }} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+            <CheckSquare className="h-3.5 w-3.5" />{selectMode ? "Cancelar" : "Selecionar"}
+          </button>
+        </div>
+      )}
+
       <section className="space-y-3 p-4">
         {list === null && <p className="text-muted-foreground">Carregando…</p>}
         {erro && <p role="alert" className="text-destructive">A conexão com o banco existente precisa estar configurada neste projeto para carregar e salvar as vistorias.</p>}
@@ -85,6 +112,13 @@ function HomePage() {
           const pct = Math.round((done / totalOf(v)) * 100);
           return (
             <div key={v.id} className="flex items-stretch overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+              {selectMode && (
+                <button onClick={() => toggleSelect(v.id)} className="flex items-center px-3 border-r border-border">
+                  <div className={`h-5 w-5 rounded border-2 flex items-center justify-center ${selected.has(v.id) ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground/40"}`}>
+                    {selected.has(v.id) && <Check className="h-3 w-3" />}
+                  </div>
+                </button>
+              )}
               <Link to="/vistoria/$id" params={{ id: v.id }} className="flex flex-1 items-center gap-3 p-4">
                 <div className="flex-1">
                   <div className="font-display text-xl font-bold">{v.empreendimento || "Sem nome"} {v.unidade && `• ${v.unidade}`}</div>

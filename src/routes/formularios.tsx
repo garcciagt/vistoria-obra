@@ -4,7 +4,7 @@ import { listarFormularios, criarFormulario, excluirFormulario, renomearFormular
 import { FORMS } from "@/lib/forms";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { Trash2, RefreshCw, Search, Eye, EyeOff, FileDown, ArrowLeft, Pencil, Check, X, CalendarDays, ChevronDown, ChevronUp, Plus, Copy, MessageCircle } from "lucide-react";
+import { Trash2, RefreshCw, Search, Eye, EyeOff, FileDown, ArrowLeft, Pencil, Check, X, CalendarDays, ChevronDown, ChevronUp, Plus, Copy, MessageCircle, CheckSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -47,6 +47,24 @@ function Painel() {
   const excluirRef = useRef<HTMLDivElement>(null);
   useDismiss(!!excluir && !excluindo, () => setExcluir(null), [excluirRef]);
   const [loading, setLoading] = useState(false);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const toggleSelect = (id: string) => setSelected((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const bulkDelete = async () => {
+    if (!selected.size) return;
+    setBulkDeleting(true);
+    try {
+      for (const id of selected) {
+        await excluirFormulario({ data: { id } });
+      }
+      setRows((prev) => prev.filter((r) => !selected.has(r.id)));
+      setSelected(new Set());
+      setSelectMode(false);
+      toast.success("Formulários excluídos.");
+    } catch { toast.error("Erro ao excluir formulários."); }
+    finally { setBulkDeleting(false); }
+  };
   const [respostasCache, setRespostasCache] = useState<Record<string, Record<string, string> | null>>({});
   const loadRespostas = async (id: string) => {
     if (respostasCache[id] !== undefined) return;
@@ -148,6 +166,18 @@ function Painel() {
         </div>
         <div className="forms-header-bar">
           <span className="forms-count" aria-live="polite">{visibleRows.length} de {rows.length} formulários</span>
+          {rows.length > 1 && (
+            <span className="flex items-center gap-2">
+              {selectMode && selected.size > 0 && (
+                <button onClick={bulkDelete} disabled={bulkDeleting} className="text-xs text-destructive underline">
+                  {bulkDeleting ? "Excluindo…" : `Excluir ${selected.size}`}
+                </button>
+              )}
+              <button onClick={() => { setSelectMode((m) => !m); setSelected(new Set()); }} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+                <CheckSquare className="h-3.5 w-3.5" />{selectMode ? "Cancelar" : "Selecionar"}
+              </button>
+            </span>
+          )}
           <button ref={novoBtnRef} type="button" className="forms-data-toggle" aria-expanded={novoAberto} onClick={() => setNovoAberta((open) => !open)}><Plus />Novo formulário<ChevronDown data-chevron /></button>
         </div>
       </header>
@@ -193,6 +223,13 @@ function Painel() {
         <div key={r.id} ref={editando === r.id ? editRef : null} className="space-y-3 overflow-hidden rounded-lg border bg-card p-4">
           <div className="grid min-w-0 gap-3">
             <div className="forms-client-summary">
+              {selectMode && (
+                <button onClick={() => toggleSelect(r.id)} className="flex items-center mr-2">
+                  <div className={`h-5 w-5 rounded border-2 flex items-center justify-center ${selected.has(r.id) ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground/40"}`}>
+                    {selected.has(r.id) && <Check className="h-3 w-3" />}
+                  </div>
+                </button>
+              )}
               <div className="forms-client-details">
                 {editando === r.id ? (
                   <form className="contents" onSubmit={(e) => { e.preventDefault(); salvarNome(r.id); }}>
