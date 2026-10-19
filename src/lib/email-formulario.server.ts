@@ -7,11 +7,12 @@ type SendParams = {
   clienteNome: string;
   tipo: string;
   respostas: Record<string, string>;
+  destinatario: string;
 };
 
-export async function enviarEmailFormulario({ clienteNome, tipo, respostas }: SendParams) {
+export async function enviarEmailFormulario({ clienteNome, tipo, respostas, destinatario }: SendParams) {
   const apiKey = process.env["RESEND_API_KEY"];
-  const destino = process.env["NOTIFY_EMAIL"] || "lstrafficsector@gmail.com";
+  const destino = destinatario;
   if (!apiKey) { console.warn("[email] RESEND_API_KEY not set — skipping email"); return; }
 
   const def = FORMS[tipo];
