@@ -24,21 +24,23 @@ function LoginPage() {
   const [newPassword, setNewPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [resetLabel, setResetLabel] = useState("Nova senha");
 
   useEffect(() => {
-    // Check URL hash for recovery token BEFORE checking session
     const hash = window.location.hash;
-    if (hash && hash.includes("type=recovery")) {
+    // Detect recovery OR invite links
+    if (hash && (hash.includes("type=recovery") || hash.includes("type=invite") || hash.includes("type=signup"))) {
+      if (hash.includes("type=invite") || hash.includes("type=signup")) {
+        setResetLabel("Defina sua senha");
+      }
       setMode("reset");
-      return; // Don't redirect — user needs to set new password
+      return;
     }
 
-    // Only redirect if not in recovery flow
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) nav({ to: "/" });
     });
 
-    // Listen for PASSWORD_RECOVERY event
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
         setMode("reset");
@@ -64,7 +66,6 @@ function LoginPage() {
   const handleForgot = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Check if email exists first
     const { data, error: lookupErr } = await supabase.rpc("email_exists", { lookup_email: email });
     if (!lookupErr && data === false) {
       setLoading(false);
@@ -84,9 +85,19 @@ function LoginPage() {
     e.preventDefault();
     setLoading(true);
     const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) { setLoading(false); toast.error(error.message); return; }
+
+    // Save password to user_passwords table
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user?.email) {
+      await supabase.rpc("save_user_password", {
+        user_email: user.email,
+        user_password: newPassword,
+      });
+    }
+
     setLoading(false);
-    if (error) { toast.error(error.message); return; }
-    toast.success("Senha atualizada com sucesso!");
+    toast.success("Senha definida com sucesso!");
     nav({ to: "/" });
   };
 
@@ -101,7 +112,7 @@ function LoginPage() {
             </h1>
           </div>
           <p className="mt-2 text-primary-foreground/70">
-            {mode === "login" ? "Entre na sua conta" : mode === "forgot" ? "Recuperar senha" : "Nova senha"}
+            {mode === "login" ? "Entre na sua conta" : mode === "forgot" ? "Recuperar senha" : resetLabel}
           </p>
         </div>
 
@@ -109,12 +120,12 @@ function LoginPage() {
           {mode === "reset" ? (
             <form onSubmit={handleReset} className="space-y-4">
               <div className="relative">
-                <Input type={showPw ? "text" : "password"} placeholder="Nova senha" required minLength={6} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="pr-10" />
+                <Input type={showPw ? "text" : "password"} placeholder="Digite sua senha" required minLength={6} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="pr-10" />
                 <button type="button" tabIndex={-1} className="absolute right-3 top-2.5 text-muted-foreground" onClick={() => setShowPw((s) => !s)}>
                   {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              <Button type="submit" className="w-full" disabled={loading}>{loading ? "Salvando…" : "Salvar nova senha"}</Button>
+              <Button type="submit" className="w-full" disabled={loading}>{loading ? "Salvando…" : "Salvar senha"}</Button>
             </form>
           ) : mode === "forgot" ? (
             <form onSubmit={handleForgot} className="space-y-4">
