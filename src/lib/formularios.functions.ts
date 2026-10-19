@@ -47,9 +47,12 @@ export const enviarFormulario = createServerFn({ method: "POST" })
       // Send email with form responses to the user who created the form
       (async () => {
         try {
-          const { data: userData } = await supabaseAdmin.auth.admin.getUserById(form.user_id);
+          console.log("[email] looking up user_id:", form.user_id);
+          const { data: userData, error: userErr } = await supabaseAdmin.auth.admin.getUserById(form.user_id);
+          if (userErr) console.error("[email] getUserById error:", userErr.message);
+          console.log("[email] userData email:", userData?.user?.email);
           const userEmail = userData?.user?.email;
-          if (!userEmail) { console.warn("[email] user email not found"); return; }
+          if (!userEmail) { console.warn("[email] user email not found for user_id:", form.user_id); return; }
           const { enviarEmailFormulario } = await import("@/lib/email-formulario.server");
           await enviarEmailFormulario({ clienteNome: form.cliente_nome, tipo: form.tipo, respostas: data.respostas, destinatario: userEmail });
         } catch (err) { console.error("[email] error:", err); }
