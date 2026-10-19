@@ -175,7 +175,11 @@ function RootComponent() {
     if (isPublic) return; // already "ready" from initState
 
     supabase.auth.getSession().then(({ data }) => {
-      setAuthState(data.session ? "ready" : "denied");
+      if (data.session) {
+        setAuthState("ready");
+      } else {
+        nav({ to: "/painel" });
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
@@ -186,17 +190,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {authState === "ready" ? <Outlet /> : authState === "denied" ? (
-        <div className="flex min-h-screen items-center justify-center bg-background px-4">
-          <div className="max-w-md text-center">
-            <h1 className="text-7xl font-bold text-foreground">404</h1>
-            <h2 className="mt-4 text-xl font-semibold text-foreground">Página não encontrada</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              A página que você procura não existe ou foi removida.
-            </p>
-          </div>
-        </div>
-      ) : (
+      {authState === "ready" ? <Outlet /> : (
         <div className="flex min-h-screen items-center justify-center">
           <p className="text-muted-foreground">Carregando…</p>
         </div>
