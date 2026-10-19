@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { useDismiss } from "@/hooks/use-dismiss";
 import { ConfirmDelete } from "@/components/ConfirmDelete";
+import { ConfirmBulkDelete } from "@/components/ConfirmBulkDelete";
 
 export const Route = createFileRoute("/formularios")({
   head: () => ({
@@ -51,6 +52,7 @@ function Painel() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const toggleSelect = (id: string) => setSelected((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [bulkConfirm, setBulkConfirm] = useState(false);
   const bulkDelete = async () => {
     if (!selected.size) return;
     setBulkDeleting(true);
@@ -63,7 +65,7 @@ function Painel() {
       setSelectMode(false);
       toast.success("Formulários excluídos.");
     } catch { toast.error("Erro ao excluir formulários."); }
-    finally { setBulkDeleting(false); }
+    finally { setBulkDeleting(false); setBulkConfirm(false); }
   };
   const [respostasCache, setRespostasCache] = useState<Record<string, Record<string, string> | null>>({});
   const loadRespostas = async (id: string) => {
@@ -169,9 +171,12 @@ function Painel() {
           {rows.length > 1 && (
             <span className="flex items-center gap-2">
               {selectMode && selected.size > 0 && (
-                <button onClick={bulkDelete} disabled={bulkDeleting} className="text-xs text-destructive underline">
-                  {bulkDeleting ? "Excluindo…" : `Excluir ${selected.size}`}
-                </button>
+                <>
+                  <span className="text-xs text-muted-foreground">{selected.size} selecionado{selected.size > 1 ? "s" : ""}</span>
+                  <button onClick={() => setBulkConfirm(true)} disabled={bulkDeleting} className="text-xs text-destructive underline">
+                    Excluir
+                  </button>
+                </>
               )}
               <button onClick={() => { setSelectMode((m) => !m); setSelected(new Set()); }} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
                 <CheckSquare className="h-3.5 w-3.5" />{selectMode ? "Cancelar" : "Selecionar"}
@@ -223,13 +228,11 @@ function Painel() {
         <div key={r.id} ref={editando === r.id ? editRef : null} className="space-y-3 overflow-hidden rounded-lg border bg-card p-4">
           <div className="grid min-w-0 gap-3">
             <div className="forms-client-summary">
-              {selectMode && (
-                <button onClick={() => toggleSelect(r.id)} className="flex items-center mr-2">
-                  <div className={`h-5 w-5 rounded border-2 flex items-center justify-center ${selected.has(r.id) ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground/40"}`}>
-                    {selected.has(r.id) && <Check className="h-3 w-3" />}
-                  </div>
-                </button>
-              )}
+              <button onClick={() => toggleSelect(r.id)} className={`flex items-center mr-2 transition-all duration-200 ${selectMode ? "opacity-100 w-7 scale-100" : "opacity-0 w-0 scale-90 pointer-events-none"}`}>
+                <div className={`h-5 w-5 rounded border-2 flex items-center justify-center transition-colors duration-150 ${selected.has(r.id) ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground/40"}`}>
+                  {selected.has(r.id) && <Check className="h-3 w-3" />}
+                </div>
+              </button>
               <div className="forms-client-details">
                 {editando === r.id ? (
                   <form className="contents" onSubmit={(e) => { e.preventDefault(); salvarNome(r.id); }}>
@@ -320,6 +323,8 @@ function Painel() {
       <ConfirmDelete open={!!confirmar} busy={excluindo} titulo="Excluir formulário?"
         descricao={confirmar ? `O formulário de ${confirmar.cliente_nome} será apagado e não poderá ser recuperado.` : ""}
         onConfirm={() => { if (confirmar) removerFormulario(confirmar); }} onCancel={() => setConfirmar(null)} />
+      <ConfirmBulkDelete open={bulkConfirm} count={selected.size} label="formulários" busy={bulkDeleting}
+        onConfirm={bulkDelete} onCancel={() => setBulkConfirm(false)} />
 
     </main>
   );

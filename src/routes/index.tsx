@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useDismiss } from "@/hooks/use-dismiss";
 import { ConfirmDelete } from "@/components/ConfirmDelete";
 import { Plus, Building2, Trash2, ChevronRight, LogOut, Home, Building, CheckSquare, Check } from "lucide-react";
+import { ConfirmBulkDelete } from "@/components/ConfirmBulkDelete";
 import { listInspections, saveInspection, deleteInspection, uid, type Inspection } from "@/lib/store";
 import { supabase } from "@/integrations/supabase/client";
 import { totalOf } from "@/lib/checklist";
@@ -46,6 +47,7 @@ function HomePage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const toggleSelect = (id: string) => setSelected((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [bulkConfirm, setBulkConfirm] = useState(false);
   const bulkDelete = async () => {
     if (!selected.size) return;
     setBulkDeleting(true);
@@ -54,7 +56,7 @@ function HomePage() {
       setList(await listInspections());
       setSelected(new Set());
       setSelectMode(false);
-    } finally { setBulkDeleting(false); }
+    } finally { setBulkDeleting(false); setBulkConfirm(false); }
   };
   const remove = (id: string) => {
     if (armed !== id) { setArmed(id); return; }
@@ -89,9 +91,12 @@ function HomePage() {
       {list && list.length > 1 && (
         <div className="flex items-center justify-end gap-2 px-4 pt-2">
           {selectMode && selected.size > 0 && (
-            <button onClick={bulkDelete} disabled={bulkDeleting} className="text-xs text-destructive underline">
-              {bulkDeleting ? "Excluindo…" : `Excluir ${selected.size} selecionada${selected.size > 1 ? "s" : ""}`}
-            </button>
+            <>
+              <span className="text-xs text-muted-foreground">{selected.size} selecionada{selected.size > 1 ? "s" : ""}</span>
+              <button onClick={() => setBulkConfirm(true)} disabled={bulkDeleting} className="text-xs text-destructive underline">
+                Excluir
+              </button>
+            </>
           )}
           <button onClick={() => { setSelectMode((m) => !m); setSelected(new Set()); }} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
             <CheckSquare className="h-3.5 w-3.5" />{selectMode ? "Cancelar" : "Selecionar"}
@@ -112,13 +117,6 @@ function HomePage() {
           const pct = Math.round((done / totalOf(v)) * 100);
           return (
             <div key={v.id} className="flex items-stretch overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-              {selectMode && (
-                <button onClick={() => toggleSelect(v.id)} className="flex items-center px-3 border-r border-border">
-                  <div className={`h-5 w-5 rounded border-2 flex items-center justify-center ${selected.has(v.id) ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground/40"}`}>
-                    {selected.has(v.id) && <Check className="h-3 w-3" />}
-                  </div>
-                </button>
-              )}
               <Link to="/vistoria/$id" params={{ id: v.id }} className="flex flex-1 items-center gap-3 p-4">
                 <div className="flex-1">
                   <div className="font-display text-xl font-bold">{v.empreendimento || "Sem nome"} {v.unidade && `• ${v.unidade}`}</div>
@@ -131,10 +129,18 @@ function HomePage() {
                 </div>
                 <ChevronRight className="h-6 w-6 text-muted-foreground" />
               </Link>
-              <button ref={armed === v.id ? armedRef : undefined} onClick={() => remove(v.id)} aria-label="Excluir"
-                className={armed === v.id ? "flex items-center gap-1 bg-destructive px-4 text-sm font-bold text-destructive-foreground" : "border-l border-border px-4 text-destructive"}>
-                <Trash2 className="h-5 w-5" />{armed === v.id && "Excluir"}
-              </button>
+              <div className="relative overflow-hidden border-l border-border" style={{ width: selectMode ? 48 : armed === v.id ? "auto" : 48, transition: "width 0.2s ease" }}>
+                <button ref={armed === v.id ? armedRef : undefined} onClick={() => remove(v.id)} aria-label="Excluir"
+                  className={`absolute inset-0 flex items-center justify-center gap-1 transition-all duration-200 ${selectMode ? "opacity-0 pointer-events-none scale-90" : "opacity-100 scale-100"} ${armed === v.id ? "bg-destructive px-4 text-sm font-bold text-destructive-foreground" : "px-4 text-destructive"}`}>
+                  <Trash2 className="h-5 w-5" />{armed === v.id && "Excluir"}
+                </button>
+                <button onClick={() => toggleSelect(v.id)} aria-label="Selecionar"
+                  className={`absolute inset-0 flex items-center justify-center transition-all duration-200 ${selectMode ? "opacity-100 scale-100" : "opacity-0 pointer-events-none scale-90"}`}>
+                  <div className={`h-5 w-5 rounded border-2 flex items-center justify-center transition-colors duration-150 ${selected.has(v.id) ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground/40"}`}>
+                    {selected.has(v.id) && <Check className="h-3 w-3" />}
+                  </div>
+                </button>
+              </div>
             </div>
           );
         })}
@@ -153,6 +159,8 @@ function HomePage() {
       <ConfirmDelete open={!!confirmar} busy={excluindo} titulo="Excluir vistoria?"
         descricao={confirmar ? `${confirmar.empreendimento || "Sem nome"}${confirmar.unidade ? ` • ${confirmar.unidade}` : ""} será apagada e não poderá ser recuperada.` : ""}
         onConfirm={excluirConfirmado} onCancel={() => setConfirmar(null)} />
+      <ConfirmBulkDelete open={bulkConfirm} count={selected.size} label="vistorias" busy={bulkDeleting}
+        onConfirm={bulkDelete} onCancel={() => setBulkConfirm(false)} />
     </main>
   );
 }
