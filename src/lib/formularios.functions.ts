@@ -29,7 +29,7 @@ export const enviarFormulario = createServerFn({ method: "POST" })
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { data: form, error: readError } = await supabaseAdmin
         .from("formularios")
-        .select("tipo")
+        .select("tipo, cliente_nome")
         .eq("token", data.token)
         .eq("status", "pendente")
         .maybeSingle();
@@ -44,6 +44,10 @@ export const enviarFormulario = createServerFn({ method: "POST" })
         .select("id")
         .maybeSingle();
       if (error || !row) return { ok: false };
+      // Send email with form responses (fire-and-forget, never blocks the client)
+      import("@/lib/email-formulario.server").then(({ enviarEmailFormulario }) =>
+        enviarEmailFormulario({ clienteNome: form.cliente_nome, tipo: form.tipo, respostas: data.respostas })
+      ).catch((err) => console.error("[email] import error:", err));
       return { ok: true };
     } catch (err) {
       console.error(err);
