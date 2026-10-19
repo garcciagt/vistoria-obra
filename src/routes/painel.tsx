@@ -26,12 +26,19 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Check if already logged in
+    // Check URL hash for recovery token BEFORE checking session
+    const hash = window.location.hash;
+    if (hash && hash.includes("type=recovery")) {
+      setMode("reset");
+      return; // Don't redirect — user needs to set new password
+    }
+
+    // Only redirect if not in recovery flow
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) nav({ to: "/" });
     });
 
-    // Listen for PASSWORD_RECOVERY event (user clicked reset link)
+    // Listen for PASSWORD_RECOVERY event
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
         setMode("reset");
@@ -57,6 +64,13 @@ function LoginPage() {
   const handleForgot = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    // Check if email exists first
+    const { data, error: lookupErr } = await supabase.rpc("email_exists", { lookup_email: email });
+    if (!lookupErr && data === false) {
+      setLoading(false);
+      toast.error("Este e-mail não está cadastrado.");
+      return;
+    }
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/painel`,
     });
