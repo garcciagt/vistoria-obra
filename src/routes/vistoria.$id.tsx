@@ -12,6 +12,7 @@ import { DiscreetDelete } from "@/components/DiscreetDelete";
 import { Checkbox } from "@/components/ui/checkbox";
 import { isApontamento } from "@/lib/apontamentos";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { UndoBar, type UndoEntry } from "@/components/UndoBar";
 
 export const Route = createFileRoute("/vistoria/$id")({
   head: () => ({
@@ -54,6 +55,7 @@ function Page() {
   const [newItemName, setNewItemName] = useState("");
   const [newItemChecks, setNewItemChecks] = useState("");
   const [showAddItem, setShowAddItem] = useState(false);
+  const [undoEntry, setUndoEntry] = useState<UndoEntry | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -164,6 +166,8 @@ function Page() {
   const removeItem = (room: Room, gi: number) => {
     const g = room.groups[gi];
     if (!g) return;
+    const snapshot = currentInspection.current;
+    if (!snapshot) return;
     const isCustom = gi >= room.groups.length - ((v.rooms ?? DEFAULT_ROOMS).find((r) => r.id === room.id)?.customGroups?.length ?? 0);
     update((x) => {
       const refs = (x.rooms ?? DEFAULT_ROOMS).map((r) =>
@@ -176,11 +180,14 @@ function Page() {
       const newGroups = room.groups.filter((_, i) => i !== gi);
       return { ...x, rooms: refs, entries: rekeyRoom(x, room, newGroups) };
     });
+    setUndoEntry({ label: '"' + g.item + '" removido', undo: () => { currentInspection.current = snapshot; setV(snapshot); void saveInspection(snapshot).catch(() => {}); } });
   };
   const removeCheck = (room: Room, gi: number, ci: number) => {
     const group = room.groups[gi];
     const check = group?.checks[ci];
     if (!group || !check) return;
+    const snapshot = currentInspection.current;
+    if (!snapshot) return;
     update((x) => ({ ...x,
       rooms: (x.rooms ?? DEFAULT_ROOMS).map((r) => r.id === room.id ? { ...r,
         removedChecks: { ...r.removedChecks, [group.item]: [...(r.removedChecks?.[group.item] ?? []), check] },
@@ -189,13 +196,16 @@ function Page() {
     }));
   };
   const removeRoom = (rid: string) => {
-    if (!confirm("Remover este ambiente e suas respostas?")) return;
+    const snapshot = currentInspection.current;
+    if (!snapshot) return;
+    const roomName = (snapshot.rooms ?? DEFAULT_ROOMS).find((r) => r.id === rid)?.name ?? "Ambiente";
     update((x) => {
       const e = { ...x.entries };
       Object.keys(e).forEach((k) => k.startsWith(rid + ":") && delete e[k]);
       return { ...x, entries: e, rooms: (x.rooms ?? DEFAULT_ROOMS).filter((r) => r.id !== rid) };
     });
     setStep((s) => Math.max(0, s - 1));
+    setUndoEntry({ label: roomName + " removido", undo: () => { currentInspection.current = snapshot; setV(snapshot); void saveInspection(snapshot).catch(() => {}); } });
   };
   const setGroup = (room: Room, gi: number, a: Answer) => update((x) => {
     const e = { ...x.entries };
@@ -396,6 +406,7 @@ function Page() {
           {pdf && <iframe className="pdf-document" title="PDF da vistoria" src={pdf.url} />}
         </DialogContent>
       </Dialog>
+      <UndoBar entry={undoEntry} onExpire={() => setUndoEntry(null)} />
     </main>
   );
 }
