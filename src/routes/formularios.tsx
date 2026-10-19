@@ -168,21 +168,7 @@ function Painel() {
         </div>
         <div className="forms-header-bar">
           <span className="forms-count" aria-live="polite">{visibleRows.length} de {rows.length} formulários</span>
-          {rows.length > 1 && (
-            <span className="flex items-center gap-2">
-              {selectMode && selected.size > 0 && (
-                <>
-                  <span className="text-xs text-muted-foreground">{selected.size} selecionado{selected.size > 1 ? "s" : ""}</span>
-                  <button onClick={() => setBulkConfirm(true)} disabled={bulkDeleting} className="text-xs text-destructive underline">
-                    Excluir
-                  </button>
-                </>
-              )}
-              <button onClick={() => { setSelectMode((m) => !m); setSelected(new Set()); }} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-                <CheckSquare className="h-3.5 w-3.5" />{selectMode ? "Cancelar" : "Selecionar"}
-              </button>
-            </span>
-          )}
+
           <button ref={novoBtnRef} type="button" className="forms-data-toggle" aria-expanded={novoAberto} onClick={() => setNovoAberta((open) => !open)}><Plus />Novo formulário<ChevronDown data-chevron /></button>
         </div>
       </header>
@@ -215,6 +201,20 @@ function Painel() {
           <div className="forms-data-bar">
             <button type="button" className="forms-data-toggle" aria-expanded={dataAberta} onClick={() => setDataAberta((open) => !open)}><CalendarDays />Filtrar por data<ChevronDown data-chevron /></button>
             {(inicio || fim || busca || filtro !== "todos") ? <button type="button" className="forms-clear" onClick={() => { setInicio(""); setFim(""); setBusca(""); setFiltro("todos"); }}>Limpar filtros</button> : null}
+            <span className="ml-auto" />
+            {rows.length > 1 && (
+              <span className="flex items-center gap-2">
+                {selectMode && selected.size > 0 && (
+                  <>
+                    <span className="text-xs text-muted-foreground">{selected.size} selecionado{selected.size > 1 ? "s" : ""}</span>
+                    <button onClick={() => setBulkConfirm(true)} disabled={bulkDeleting} className="text-xs text-destructive underline">Excluir</button>
+                  </>
+                )}
+                <button onClick={() => { setSelectMode((m) => !m); setSelected(new Set()); }} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+                  <CheckSquare className="h-3.5 w-3.5" />{selectMode ? "Cancelar" : "Selecionar"}
+                </button>
+              </span>
+            )}
           </div>
           {dataAberta ? (
             <div className="forms-period">
@@ -228,13 +228,6 @@ function Painel() {
         <div key={r.id} ref={editando === r.id ? editRef : null} className="space-y-3 overflow-hidden rounded-lg border bg-card p-4">
           <div className="grid min-w-0 gap-3">
             <div className="forms-client-summary">
-              {selectMode && (
-                <button onClick={() => toggleSelect(r.id)} className="flex items-center mr-2">
-                  <div className={`h-5 w-5 rounded border-2 flex items-center justify-center ${selected.has(r.id) ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground/40"}`}>
-                    {selected.has(r.id) && <Check className="h-3 w-3" />}
-                  </div>
-                </button>
-              )}
               <div className="forms-client-details">
                 {editando === r.id ? (
                   <form className="contents" onSubmit={(e) => { e.preventDefault(); salvarNome(r.id); }}>
@@ -252,6 +245,12 @@ function Painel() {
                   <Button size="icon" disabled={salvando} aria-label="Salvar nome" title="Salvar nome" onClick={() => salvarNome(r.id)}><Check /></Button>
                   <Button size="icon" variant="outline" disabled={salvando} aria-label="Cancelar edição" title="Cancelar edição (Esc)" onClick={cancelarEdicao}><X /></Button>
                 </>
+              ) : selectMode ? (
+                <button onClick={() => toggleSelect(r.id)} className="forms-client-menu flex items-center justify-center" aria-label="Selecionar">
+                  <div className={`h-5 w-5 rounded border-2 flex items-center justify-center transition-colors duration-150 ${selected.has(r.id) ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground/40"}`}>
+                    {selected.has(r.id) && <Check className="h-3 w-3" />}
+                  </div>
+                </button>
               ) : aberto === r.id ? (
                 <Button variant="outline" size="icon" className="forms-client-menu" aria-label="Ocultar respostas" title="Ocultar respostas" onClick={() => setAberto(null)}><ChevronUp /></Button>
               ) : (
