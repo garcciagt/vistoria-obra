@@ -23,9 +23,12 @@ function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [resetLabel, setResetLabel] = useState("Nova senha");
+  const [isInvite, setIsInvite] = useState(false);
 
   useEffect(() => {
     const hash = window.location.hash;
@@ -33,6 +36,7 @@ function LoginPage() {
     if (hash && (hash.includes("type=recovery") || hash.includes("type=invite") || hash.includes("type=signup"))) {
       if (hash.includes("type=invite") || hash.includes("type=signup")) {
         setResetLabel("Defina sua senha");
+        setIsInvite(true);
       }
       setMode("reset");
       return;
@@ -95,7 +99,11 @@ function LoginPage() {
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    const updatePayload: any = { password: newPassword };
+    if (isInvite && (firstName.trim() || lastName.trim())) {
+      updatePayload.data = { first_name: firstName.trim(), last_name: lastName.trim() };
+    }
+    const { error } = await supabase.auth.updateUser(updatePayload);
     if (error) { setLoading(false); toast.error(error.message); return; }
 
     // Save password to user_passwords table
@@ -130,6 +138,12 @@ function LoginPage() {
         <div className="rounded-2xl bg-card p-6 shadow-lg">
           {mode === "reset" ? (
             <form onSubmit={handleReset} className="space-y-4">
+              {isInvite && (
+                <>
+                  <Input type="text" placeholder="Nome" required value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                  <Input type="text" placeholder="Sobrenome" required value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                </>
+              )}
               <div className="relative">
                 <Input type={showPw ? "text" : "password"} placeholder="Digite sua senha" required minLength={6} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="pr-10" />
                 <button type="button" tabIndex={-1} className="absolute right-3 top-2.5 text-muted-foreground" onClick={() => setShowPw((s) => !s)}>

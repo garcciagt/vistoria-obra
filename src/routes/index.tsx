@@ -28,6 +28,12 @@ function HomePage() {
   const nav = useNavigate();
   const [erro, setErro] = useState(false);
   useEffect(() => { listInspections().then(setList).catch(() => { setErro(true); setList([]); }); }, []);
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      const meta = data.user?.user_metadata;
+      if (meta?.first_name) setUserName(meta.first_name);
+    });
+  }, []);
 
   const create = async (tipoImovel: "apartamento" | "casa") => {
     const v: Inspection = {
@@ -50,6 +56,7 @@ function HomePage() {
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [bulkConfirm, setBulkConfirm] = useState(false);
   const [undoEntry, setUndoEntry] = useState<UndoEntry | null>(null);
+  const [userName, setUserName] = useState("");
   const pendingDeleteRef = useRef<{ id: string; timer: ReturnType<typeof setTimeout> } | null>(null);
   const bulkDelete = async () => {
     if (!selected.size) return;
@@ -103,6 +110,7 @@ function HomePage() {
           </h1>
         </div>
         <p className="mt-2 text-primary-foreground/80">Checklist de vistoria • fotos • PDF</p>
+        {userName && <p className="mt-1 text-sm text-primary-foreground/50">Olá, {userName}</p>}
         <button onClick={async () => { await supabase.auth.signOut(); window.location.href = "/painel"; }} className="absolute right-4 top-4 flex items-center gap-1 rounded-lg bg-primary-foreground/10 px-3 py-1.5 text-xs font-semibold text-primary-foreground/80 hover:bg-primary-foreground/20" aria-label="Sair"><LogOut className="h-3.5 w-3.5" />Sair</button>
         <Link to="/formularios" className="mt-4 block rounded-xl bg-secondary px-4 py-3 text-center text-lg font-bold text-secondary-foreground shadow">📋 Formulários de clientes</Link>
       </header>
