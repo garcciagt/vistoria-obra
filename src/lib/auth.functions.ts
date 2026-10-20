@@ -31,8 +31,16 @@ export const checkUserBannedById = createServerFn({ method: "GET" })
   .handler(async ({ data: userId }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin.auth.admin.getUserById(userId);
-    if (error || !data.user) return { banned: false };
-    const bu = data.user.banned_until;
-    if (bu && bu !== "none" && new Date(bu) > new Date()) return { banned: true };
+    if (error || !data.user) {
+      console.log("[ban-check] getUserById error:", error?.message, "user:", !!data?.user);
+      return { banned: false };
+    }
+    const bu = (data.user as any).banned_until;
+    console.log("[ban-check] userId:", userId, "banned_until:", bu, "type:", typeof bu);
+    if (!bu || bu === "none") return { banned: false };
+    // Handle both date string and "forever"/"permanent" values
+    if (bu === "forever" || bu === "permanent") return { banned: true };
+    const bannedDate = new Date(bu);
+    if (!isNaN(bannedDate.getTime()) && bannedDate > new Date()) return { banned: true };
     return { banned: false };
   });

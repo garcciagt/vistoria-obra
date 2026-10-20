@@ -196,7 +196,7 @@ function RootComponent() {
         try {
           const { banned } = await checkUserBannedById({ data: data.session.user.id });
           if (banned) { kickBanned(); return; }
-        } catch {}
+        } catch (e) { console.error("[ban-check] initial error:", e); }
       } else {
         nav({ to: "/painel" });
       }
@@ -209,7 +209,7 @@ function RootComponent() {
       try {
         const { banned } = await checkUserBannedById({ data: data.session.user.id });
         if (banned) kickBanned();
-      } catch {}
+      } catch (e) { console.error("[ban-check] interval error:", e); }
     }, 30_000);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
