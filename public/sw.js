@@ -1,4 +1,4 @@
-const CACHE = 'vo-v16';
+const CACHE = 'vo-v17';
 const PRECACHE = ["/manifest.webmanifest", "/icon-512.png"];
 
 self.addEventListener("install", (e) => {
@@ -26,23 +26,19 @@ self.addEventListener("fetch", (e) => {
   )
     return;
 
-  // Static assets: cache-first
+  // Static assets: network-first with cache fallback
   if (
     url.pathname.match(/\.(js|css|png|jpg|jpeg|svg|webp|woff2?|ico|webmanifest)$/) ||
     url.pathname.startsWith("/assets/")
   ) {
     e.respondWith(
-      caches.match(e.request).then(
-        (cached) =>
-          cached ||
-          fetch(e.request).then((res) => {
-            if (res.ok) {
-              const clone = res.clone();
-              caches.open(CACHE).then((c) => c.put(e.request, clone));
-            }
-            return res;
-          })
-      )
+      fetch(e.request).then((res) => {
+        if (res.ok) {
+          const clone = res.clone();
+          caches.open(CACHE).then((c) => c.put(e.request, clone));
+        }
+        return res;
+      }).catch(() => caches.match(e.request))
     );
     return;
   }
