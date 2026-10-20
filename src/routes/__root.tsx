@@ -202,20 +202,26 @@ function RootComponent() {
       }
     });
 
-    // Periodic ban check every 30s
-    const interval = setInterval(async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) return;
+    // Ban check on every click/tap
+    let checking = false;
+    const onInteraction = async () => {
+      if (checking) return;
+      checking = true;
       try {
-        const { banned } = await checkUserBannedById({ data: data.session.user.id });
+        const { data: s } = await supabase.auth.getSession();
+        if (!s.session) return;
+        const { banned } = await checkUserBannedById({ data: s.session.user.id });
         if (banned) kickBanned();
-      } catch (e) { console.error("[ban-check] interval error:", e); }
-    }, 30_000);
+      } catch (e) { console.error("[ban-check] click error:", e); }
+      finally { checking = false; }
+    };
+    document.addEventListener("click", onInteraction, true);
+    document.addEventListener("touchstart", onInteraction, true);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_OUT") { setAuthState("denied"); nav({ to: "/painel" }); }
     });
-    return () => { subscription.unsubscribe(); clearInterval(interval); };
+    return () => { subscription.unsubscribe(); document.removeEventListener('click', onInteraction, true); document.removeEventListener('touchstart', onInteraction, true); };
   }, []);
 
   return (
