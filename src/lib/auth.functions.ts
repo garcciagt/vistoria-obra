@@ -25,3 +25,14 @@ export const checkUserBanned = createServerFn({ method: "GET" })
 
     return { banned: false };
   });
+
+export const checkUserBannedById = createServerFn({ method: "GET" })
+  .validator((userId: string) => userId)
+  .handler(async ({ data: userId }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin.auth.admin.getUserById(userId);
+    if (error || !data.user) return { banned: false };
+    const bu = data.user.banned_until;
+    if (bu && bu !== "none" && new Date(bu) > new Date()) return { banned: true };
+    return { banned: false };
+  });

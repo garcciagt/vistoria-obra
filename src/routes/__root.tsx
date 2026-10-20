@@ -17,6 +17,8 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { checkUserBannedById } from "@/lib/auth.functions";
+import { toast } from "sonner";
 
 function NotFoundComponent() {
   return (
@@ -143,6 +145,8 @@ function RootComponent() {
       const key = Object.keys(localStorage).find((k) => k.startsWith("sb-") && k.endsWith("-auth-token"));
       if (key && localStorage.getItem(key)) return "ready";
     } catch {}
+    // No token on protected route — redirect immediately, no flash
+    window.location.href = "/painel";
     return "loading";
   };
   const [authState, setAuthState] = useState(initState);
@@ -174,24 +178,44 @@ function RootComponent() {
     };
   }, []);
 
-  // Auth guard: mostra 404 se não logado (exceto rotas públicas)
+  // Auth guard + ban check
   useEffect(() => {
     const path = window.location.pathname;
     const isPublic = path.startsWith("/f/") || path === "/painel";
-    if (isPublic) return; // already "ready" from initState
+    if (isPublic) return;
 
-    supabase.auth.getSession().then(({ data }) => {
+    const kickBanned = () => {
+      toast.error("Usuário pausado temporariamente.");
+      supabase.auth.signOut().then(() => { window.location.href = "/painel"; });
+    };
+
+    supabase.auth.getSession().then(async ({ data }) => {
       if (data.session) {
         setAuthState("ready");
+        // Check if banned right now
+        try {
+          const { banned } = await checkUserBannedById({ data: data.session.user.id });
+          if (banned) { kickBanned(); return; }
+        } catch {}
       } else {
         nav({ to: "/painel" });
       }
     });
 
+    // Periodic ban check every 30s
+    const interval = setInterval(async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) return;
+      try {
+        const { banned } = await checkUserBannedById({ data: data.session.user.id });
+        if (banned) kickBanned();
+      } catch {}
+    }, 30_000);
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_OUT") { setAuthState("denied"); nav({ to: "/painel" }); }
     });
-    return () => subscription.unsubscribe();
+    return () => { subscription.unsubscribe(); clearInterval(interval); };
   }, []);
 
   return (
