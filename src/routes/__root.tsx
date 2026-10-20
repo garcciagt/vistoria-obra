@@ -17,7 +17,6 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { checkUserBannedById } from "@/lib/auth.functions";
 import { toast } from "sonner";
 
 function NotFoundComponent() {
@@ -189,31 +188,30 @@ function RootComponent() {
       supabase.auth.signOut().then(() => { window.location.href = "/painel"; });
     };
 
+    const checkBan = async () => {
+      try {
+        const { data, error } = await supabase.rpc("is_current_user_banned");
+        console.log("[ban-check] result:", data, "error:", error?.message);
+        if (data === true) kickBanned();
+      } catch (e) { console.error("[ban-check] error:", e); }
+    };
+
     supabase.auth.getSession().then(async ({ data }) => {
       if (data.session) {
         setAuthState("ready");
-        // Check if banned right now
-        try {
-          const { banned } = await checkUserBannedById({ data: data.session.user.id });
-          if (banned) { kickBanned(); return; }
-        } catch (e) { console.error("[ban-check] initial error:", e); }
+        await checkBan();
       } else {
         nav({ to: "/painel" });
       }
     });
 
-    // Ban check on every click/tap
-    let checking = false;
-    const onInteraction = async () => {
-      if (checking) return;
-      checking = true;
-      try {
-        const { data: s } = await supabase.auth.getSession();
-        if (!s.session) return;
-        const { banned } = await checkUserBannedById({ data: s.session.user.id });
-        if (banned) kickBanned();
-      } catch (e) { console.error("[ban-check] click error:", e); }
-      finally { checking = false; }
+    // Ban check on every click/tap (throttled to 1 per 5s)
+    let lastCheck = 0;
+    const onInteraction = () => {
+      const now = Date.now();
+      if (now - lastCheck < 5000) return;
+      lastCheck = now;
+      checkBan();
     };
     document.addEventListener("click", onInteraction, true);
     document.addEventListener("touchstart", onInteraction, true);
@@ -221,7 +219,7 @@ function RootComponent() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_OUT") { setAuthState("denied"); nav({ to: "/painel" }); }
     });
-    return () => { subscription.unsubscribe(); document.removeEventListener('click', onInteraction, true); document.removeEventListener('touchstart', onInteraction, true); };
+    return () => { subscription.unsubscribe(); document.removeEventListener("click", onInteraction, true); document.removeEventListener("touchstart", onInteraction, true); };
   }, []);
 
   return (
