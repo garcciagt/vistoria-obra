@@ -279,7 +279,7 @@ function Painel() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
                     <DropdownMenuItem onClick={() => { setEditando(r.id); setNomeEditado(r.cliente_nome); }}><Pencil />Editar nome</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigator.clipboard.writeText(link(r.token))}><Copy />Copiar link</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => { navigator.clipboard.writeText(link(r.token)); toast.success("Link copiado!"); }}><Copy />Copiar link</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => {
                       const mensagem = `Olá ${r.cliente_nome}, por favor preencha o formulário: ${link(r.token)}`;
                       navigator.clipboard?.writeText(mensagem).catch(() => {});
@@ -290,7 +290,7 @@ function Painel() {
                     }}><MessageCircle />Enviar WhatsApp</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => {
                       navigator.clipboard?.writeText(`Olá ${r.cliente_nome}, por favor preencha o formulário: ${link(r.token)}`);
-                      window.alert("Mensagem copiada! Cole no WhatsApp.");
+                      toast.success("Mensagem copiada!");
                     }}><Copy />Copiar mensagem</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => { if (aberto === r.id) { setAberto(null); } else { setAberto(r.id); loadRespostas(r.id); } }}>{aberto === r.id ? <EyeOff /> : <Eye />}{aberto === r.id ? "Ocultar respostas" : "Ver respostas"}</DropdownMenuItem>
                     <DropdownMenuSeparator />
