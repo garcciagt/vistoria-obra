@@ -114,6 +114,15 @@ function LoginPage() {
         user_password: newPassword,
       });
     }
+    // Save name to profiles table
+    if (user && isInvite && firstName.trim()) {
+      await supabase.from("profiles").upsert({
+        id: user.id,
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        updated_at: new Date().toISOString(),
+      });
+    }
 
     setLoading(false);
     toast.success("Senha definida com sucesso!");

@@ -29,9 +29,10 @@ function HomePage() {
   const [erro, setErro] = useState(false);
   useEffect(() => { listInspections().then(setList).catch(() => { setErro(true); setList([]); }); }, []);
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      const meta = data.user?.user_metadata;
-      if (meta?.first_name) setUserName(meta.first_name);
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (!data.user) return;
+      const { data: profile } = await supabase.from("profiles").select("first_name").eq("id", data.user.id).single();
+      if (profile?.first_name) setUserName(profile.first_name);
     });
   }, []);
 
